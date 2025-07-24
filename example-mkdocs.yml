@@ -1,0 +1,16 @@
+# Example mkdocs.yml configuration with copy-to-llm plugin
+site_name: My Documentation
+site_url: https://example.com/
+
+theme:
+  name: material
+
+plugins:
+  - search
+  - copy-to-llm:
+      enabled: true      # Enable/disable the plugin
+      code_blocks: true  # Add buttons to code blocks
+      page_button: true  # Add the button to page headers
+
+# The plugin will automatically inject the necessary CSS and JavaScript
+# No need to manually add them to extra_css or extra_javascript
