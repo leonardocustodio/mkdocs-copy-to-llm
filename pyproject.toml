@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mkdocs-copy-to-llm"
+version = "0.1.0"
+description = "MkDocs plugin to add 'Copy to LLM' buttons to documentation"
+readme = "README.md"
+requires-python = ">=3.7"
+license = "Apache-2.0"
+authors = [
+    {name = "Leonardo Custodio"},
+]
+keywords = ["mkdocs", "plugin", "documentation", "llm", "copy"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: OS Independent",
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Documentation",
+    "Topic :: Text Processing",
+]
+dependencies = [
+    "mkdocs>=1.2"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/leonardocustodio/mkdocs-copy-to-llm"
+"Bug Tracker" = "https://github.com/leonardocustodio/mkdocs-copy-to-llm/issues"
+
+[project.entry-points."mkdocs.plugins"]
+copy-to-llm = "mkdocs_copy_to_llm.plugin:CopyToLLMPlugin"
