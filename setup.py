@@ -1,14 +1,20 @@
 from setuptools import setup, find_packages
+import os
 
-with open("README.md", "r", encoding="utf-8") as fh:
-    long_description = fh.read()
+# Read the README file
+here = os.path.abspath(os.path.dirname(__file__))
+try:
+    with open(os.path.join(here, "README.md"), "r", encoding="utf-8") as fh:
+        long_description = fh.read()
+except FileNotFoundError:
+    long_description = "MkDocs plugin to add 'Copy to LLM' buttons to documentation"
 
 setup(
-    name="mkdocs-copy-to-llms",
+    name="mkdocs-copy-to-llm",
     version="0.1.0",
     author="Leonardo Custodio",
     author_email="leonardo@custodio.me",
-    description="MkDocs plugin to add 'Copy to LLMs' button to documentation",
+    description="MkDocs plugin to add 'Copy to LLM' buttons to documentation",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/leonardocustodio/mkdocs-copy-to-llm",
