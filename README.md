@@ -59,4 +59,4 @@ The plugin uses CSS variables from your MkDocs theme. It integrates seamlessly w
 
 ## License
 
-MIT License
+Apache License 2.0
