@@ -1,8 +1,9 @@
 # MkDocs Copy to LLM Plugin
 
-[![CI](https://github.com/leonardocustodio/mkdocs-copy-to-llm/actions/workflows/ci.yml/badge.svg)](https://github.com/leonardocustodio/mkdocs-copy-to-llm/actions/workflows/ci.yml)
+[![Tests](https://github.com/leonardocustodio/mkdocs-copy-to-llm/actions/workflows/tests.yml/badge.svg)](https://github.com/leonardocustodio/mkdocs-copy-to-llm/actions/workflows/tests.yml)
+[![codecov](https://codecov.io/gh/leonardocustodio/mkdocs-copy-to-llm/branch/main/graph/badge.svg)](https://codecov.io/gh/leonardocustodio/mkdocs-copy-to-llm)
 [![PyPI version](https://badge.fury.io/py/mkdocs-copy-to-llm.svg)](https://badge.fury.io/py/mkdocs-copy-to-llm)
-[![Python versions](https://img.shields.io/pypi/pyversions/mkdocs-copy-to-llm.svg)](https://pypi.org/project/mkdocs-copy-to-llm/)
+[![Python versions](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)](https://pypi.org/project/mkdocs-copy-to-llm/)
 
 A MkDocs plugin that adds "Copy to LLM" buttons to your documentation, making it easy to copy code blocks and entire pages in formats optimized for Large Language Models (LLMs).
 
