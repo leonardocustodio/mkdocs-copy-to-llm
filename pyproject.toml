@@ -4,13 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mkdocs-copy-to-llm"
-version = "0.2.0"
+version = "0.2.1"
 description = "MkDocs plugin to add 'Copy to LLM' buttons to documentation"
 readme = "README.md"
 requires-python = ">=3.9"
 license = "Apache-2.0"
 authors = [
-    {name = "Leonardo Custodio", email = "leonardo@custodio.me"},
+    {name = "Leonardo Custodio", email = "leonardo.custodio@parity.io"},
+    {name = "David Castro", email = "davidcastro@parity.io"},
+    {name = "Karim Jedda ", email = "karim@parity.io"},
 ]
 keywords = ["mkdocs", "plugin", "documentation", "llm", "copy", "ai", "chatgpt", "claude"]
 classifiers = [

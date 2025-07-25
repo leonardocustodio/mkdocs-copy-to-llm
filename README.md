@@ -7,7 +7,7 @@
 
 A MkDocs plugin that adds "Copy to LLM" buttons to your documentation, making it easy to copy code blocks and entire pages in formats optimized for Large Language Models (LLMs).
 
-This package was inspired by [Docus](https://github.com/nuxtlabs/docus) by NuxtLabs
+This package was inspired by [Docus](https://github.com/nuxtlabs/docus) by NuxtLabs and made for [Polkadot Documentation](https://docs.polkadot.com).
 
 ## Features
 
