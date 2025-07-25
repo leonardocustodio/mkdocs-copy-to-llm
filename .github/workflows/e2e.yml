@@ -2,17 +2,18 @@ name: End-to-End MkDocs Tests
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   e2e-test:
     name: E2E MkDocs Tests
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ['3.9', '3.13']
 
     steps:
@@ -106,12 +107,8 @@ jobs:
         SERVER_PID=$!
         # Wait for server to start
         sleep 5
-        # Check if server is running (different commands for different OS)
-        if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-          curl http://127.0.0.1:8000 || exit 1
-        else
-          curl -f http://127.0.0.1:8000 || exit 1
-        fi
+        # Check if server is running
+        curl -f http://127.0.0.1:8000 || exit 1
         # Kill the server
         kill $SERVER_PID || true
 

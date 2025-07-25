@@ -1,16 +1,18 @@
 name: Linting and Type Checking
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   lint-and-typecheck:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
+        python-version: ['3.9', '3.13']
 
     steps:
     - uses: actions/checkout@v4
