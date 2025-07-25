@@ -6,11 +6,12 @@ theme:
   name: material
 
 plugins:
-  - search
-  - copy-to-llm:
-      enabled: true      # Enable/disable the plugin
-      code_blocks: true  # Add buttons to code blocks
-      page_button: true  # Add the button to page headers
+  - copy-to-llm
+    # Optional color customization:
+    # button_bg_color: "#ffffff"
+    # button_hover_color: "var(--md-primary-fg-color)"
+    # toast_bg_color: "var(--md-primary-fg-color)"
+    # toast_text_color: "#ffffff"
 
 # The plugin will automatically inject the necessary CSS and JavaScript
 # No need to manually add them to extra_css or extra_javascript

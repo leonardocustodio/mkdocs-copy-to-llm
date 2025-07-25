@@ -1,0 +1,138 @@
+name: End-to-End MkDocs Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  e2e-test:
+    name: E2E MkDocs Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.13']
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+        pip install mkdocs mkdocs-material
+
+    - name: Create test MkDocs project
+      run: |
+        mkdir -p test-site/docs
+        echo "# Test Page" > test-site/docs/index.md
+        echo "## Section 1" >> test-site/docs/index.md
+        echo "This is a test page." >> test-site/docs/index.md
+        echo "" >> test-site/docs/index.md
+        echo "## Section 2" >> test-site/docs/index.md
+        echo "Another section with code:" >> test-site/docs/index.md
+        echo '```python' >> test-site/docs/index.md
+        echo 'def hello():' >> test-site/docs/index.md
+        echo '    print("Hello, world!")' >> test-site/docs/index.md
+        echo '```' >> test-site/docs/index.md
+
+    - name: Create MkDocs config with default settings
+      run: |
+        cat > test-site/mkdocs.yml << EOF
+        site_name: Test Site
+        plugins:
+          - copy-to-llm
+        EOF
+
+    - name: Build with default settings
+      run: |
+        cd test-site
+        mkdocs build --strict
+
+    - name: Verify build output
+      run: |
+        test -f test-site/site/index.html
+        test -f test-site/site/assets/copy-to-llm/copy-to-llm.js
+        test -f test-site/site/assets/copy-to-llm/copy-to-llm.css
+
+    - name: Create MkDocs config with custom colors
+      run: |
+        cat > test-site/mkdocs.yml << EOF
+        site_name: Test Site with Custom Colors
+        plugins:
+          - copy-to-llm:
+              button_bg_color: "#FF5722"
+              button_hover_color: "#E64A19"
+              toast_bg_color: "#4CAF50"
+              toast_text_color: "#FFFFFF"
+              analytics: true
+        EOF
+
+    - name: Build with custom colors
+      run: |
+        cd test-site
+        mkdocs build --strict
+
+    - name: Verify custom CSS was created
+      run: |
+        test -f test-site/site/assets/copy-to-llm/copy-to-llm-custom.css
+
+    - name: Create MkDocs config with repo URL
+      run: |
+        cat > test-site/mkdocs.yml << EOF
+        site_name: Test Site with Repo
+        plugins:
+          - copy-to-llm:
+              repo_url: "https://raw.githubusercontent.com/example/repo/main"
+        EOF
+
+    - name: Build with repo URL
+      run: |
+        cd test-site
+        mkdocs build --strict
+
+    - name: Test development server
+      run: |
+        cd test-site
+        # Start mkdocs serve in background
+        mkdocs serve &
+        SERVER_PID=$!
+        # Wait for server to start
+        sleep 5
+        # Check if server is running
+        curl -f http://127.0.0.1:8000 || exit 1
+        # Kill the server
+        kill $SERVER_PID || true
+
+    - name: Test with Material theme
+      run: |
+        cat > test-site/mkdocs.yml << EOF
+        site_name: Test Site with Material
+        theme:
+          name: material
+        plugins:
+          - copy-to-llm:
+              button_bg_color: "var(--md-primary-fg-color)"
+              button_hover_color: "var(--md-primary-fg-color--dark)"
+        EOF
+        cd test-site
+        mkdocs build --strict
+
+    - name: Test minification disabled
+      run: |
+        cat > test-site/mkdocs.yml << EOF
+        site_name: Test Site No Minify
+        plugins:
+          - copy-to-llm:
+              minify: false
+        EOF
+        cd test-site
+        mkdocs build --strict
