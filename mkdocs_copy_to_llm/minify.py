@@ -16,7 +16,7 @@ def minify_js(content: str) -> str:
         Minified JavaScript content
     """
     try:
-        from jsmin import jsmin  # type: ignore[import-not-found]
+        from jsmin import jsmin  # type: ignore[import-untyped]
 
         return str(jsmin(content))
     except ImportError:
@@ -38,7 +38,7 @@ def minify_css(content: str) -> str:
         Minified CSS content
     """
     try:
-        from csscompressor import compress  # type: ignore[import-not-found]
+        from csscompressor import compress  # type: ignore[import-untyped]
 
         return str(compress(content))
     except ImportError:
