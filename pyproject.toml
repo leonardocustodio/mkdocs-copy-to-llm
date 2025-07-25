@@ -1,0 +1,180 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mkdocs-copy-to-llm"
+version = "0.2.1"
+description = "MkDocs plugin to add 'Copy to LLM' buttons to documentation"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "Apache-2.0"
+authors = [
+    {name = "Leonardo Custodio", email = "leonardo.custodio@parity.io"},
+    {name = "David Castro", email = "davidcastro@parity.io"},
+    {name = "Karim Jedda ", email = "karim@parity.io"},
+]
+keywords = ["mkdocs", "plugin", "documentation", "llm", "copy", "ai", "chatgpt", "claude"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Documentation",
+    "Topic :: Text Processing",
+    "Framework :: MkDocs",
+]
+dependencies = [
+    "mkdocs>=1.2",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/leonardocustodio/mkdocs-copy-to-llm"
+"Documentation" = "https://github.com/leonardocustodio/mkdocs-copy-to-llm#readme"
+"Repository" = "https://github.com/leonardocustodio/mkdocs-copy-to-llm"
+"Bug Tracker" = "https://github.com/leonardocustodio/mkdocs-copy-to-llm/issues"
+"Changelog" = "https://github.com/leonardocustodio/mkdocs-copy-to-llm/releases"
+
+[project.entry-points."mkdocs.plugins"]
+copy-to-llm = "mkdocs_copy_to_llm.plugin:CopyToLLMPlugin"
+
+[project.optional-dependencies]
+minify = [
+    "jsmin>=3.0.0",
+    "csscompressor>=0.9.5",
+]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "pytest-mock>=3.0",
+    "mypy>=1.0",
+    "ruff>=0.1.0",
+    "build>=0.10.0",
+    "twine>=4.0.0",
+    "mkdocs-material>=9.0",  # For testing with a popular theme
+    "types-setuptools",  # Type stubs for setuptools
+    "jsmin>=3.0.0",  # JavaScript minification
+    "csscompressor>=0.9.5",  # CSS minification
+    "pre-commit>=3.0.0",  # Pre-commit hooks
+]
+
+[tool.setuptools]
+zip-safe = false
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["mkdocs_copy_to_llm*"]
+exclude = [
+    "tests*",
+    "docs*",
+    "*.tests",
+    "*.tests.*",
+    "tests.*",
+]
+
+[tool.setuptools.package-data]
+mkdocs_copy_to_llm = [
+    "assets/js/*.js",
+    "assets/css/*.css",
+    "py.typed",  # For PEP 561 type hint support
+]
+
+[tool.setuptools.exclude-package-data]
+"*" = [
+    "*.pyc",
+    "*.pyo",
+    "__pycache__",
+    ".DS_Store",
+    "*.swp",
+    "*.swo",
+    "*~",
+    ".git*",
+    "*.orig",
+]
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = "mkdocs.*"
+ignore_missing_imports = true
+
+[tool.ruff]
+target-version = "py39"
+line-length = 88
+
+[tool.ruff.lint]
+extend-select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+    "ARG", # flake8-unused-arguments
+    "SIM", # flake8-simplify
+    "RUF", # Ruff-specific rules
+]
+ignore = [
+    "B008", # do not perform function calls in argument defaults
+    "ARG002", # Unused method argument (common in plugin interfaces)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["mkdocs_copy_to_llm"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+addopts = [
+    "--strict-markers",
+    "--cov=mkdocs_copy_to_llm",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+    "-vv",
+]
+
+[tool.coverage.run]
+source = ["mkdocs_copy_to_llm"]
+omit = [
+    "*/tests/*",
+    "*/__init__.py",
+    "*/setup.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+
+[tool.bandit]
+skips = ["B101"]  # Skip assert_used test
+exclude_dirs = ["tests", "test_docs"]

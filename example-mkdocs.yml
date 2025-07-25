@@ -1,0 +1,17 @@
+# Example mkdocs.yml configuration with copy-to-llm plugin
+site_name: My Documentation
+site_url: https://example.com/
+
+theme:
+  name: material
+
+plugins:
+  - copy-to-llm
+    # Optional color customization:
+    # button_bg_color: "#ffffff"
+    # button_hover_color: "var(--md-primary-fg-color)"
+    # toast_bg_color: "var(--md-primary-fg-color)"
+    # toast_text_color: "#ffffff"
+
+# The plugin will automatically inject the necessary CSS and JavaScript
+# No need to manually add them to extra_css or extra_javascript
