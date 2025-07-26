@@ -11,7 +11,6 @@ This package was inspired by [Docus](https://github.com/nuxtlabs/docus) by NuxtL
 
 ## Features
 
-- **Copy to LLM buttons for code blocks** — Adds a button next to each code block to copy the code with context
 - **Copy entire page** — Adds a split button at the top of each page with multiple copy options:
   - Copy page content as Markdown
   - Copy markdown link
