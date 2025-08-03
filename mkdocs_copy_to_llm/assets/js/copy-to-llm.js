@@ -108,11 +108,16 @@ ${content}`;
       // GitHub edit URL: https://github.com/owner/repo/edit/branch/path/to/file.md
       // Raw URL: https://raw.githubusercontent.com/owner/repo/branch/path/to/file.md
       const editUrl = editLink.href;
-      if (editUrl.includes('github.com')) {
-        return editUrl
-          .replace('github.com', 'raw.githubusercontent.com')
-          .replace('/edit/', '/')
-          .replace('/blob/', '/');
+      try {
+        const parsedUrl = new URL(editUrl);
+        if (parsedUrl.hostname === 'github.com') {
+          return editUrl
+            .replace('github.com', 'raw.githubusercontent.com')
+            .replace('/edit/', '/')
+            .replace('/blob/', '/');
+        }
+      } catch (e) {
+        // If URL parsing fails, fall through to fallback logic
       }
     }
 
