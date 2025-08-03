@@ -203,15 +203,9 @@ ${content}`;
     // Remove buttons and UI elements
     clone.querySelectorAll('.md-clipboard, .copy-to-llm, .headerlink').forEach(el => el.remove());
 
-    // Remove <script> and <style> tags and their content (repeatedly, to handle nested/multiple)
+    // Remove <script> and <style> tags and their content using DOM methods
+    clone.querySelectorAll('script, style').forEach(el => el.remove());
     let html = clone.innerHTML;
-    let previous;
-    do {
-      previous = html;
-      html = html
-        .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
-        .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '');
-    } while (html !== previous);
 
     // Convert to markdown-like format
     let text = html
