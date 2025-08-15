@@ -238,11 +238,14 @@ class CopyToLLMPlugin(BasePlugin[CopyToLLMPluginConfig]):
         buttons_config.setdefault("open_in_claude", True)
 
         # Convert to JSON string for meta tag
+        import html as html_lib
         import json
 
         buttons_json = json.dumps(buttons_config)
+        # Safely escape JSON for HTML attribute context
+        buttons_content = html_lib.escape(buttons_json, quote=True)
         meta_tags.append(
-            f"<meta name=\"mkdocs-copy-to-llm-buttons\" content='{buttons_json}'>"
+            f'<meta name="mkdocs-copy-to-llm-buttons" content="{buttons_content}">'
         )
 
         # Insert all meta tags after <head> tag
