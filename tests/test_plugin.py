@@ -720,7 +720,9 @@ class TestCopyToLLMPlugin:
                 assert "open_in_claude button disabled" not in content
                 assert "copy_markdown_link button disabled" not in content
                 assert "view_as_markdown button disabled" not in content
-                assert "copy_page button disabled\"" not in content  # Note: different format
+                assert (
+                    'copy_page button disabled"' not in content
+                )  # Note: different format
 
     def test_on_pre_build_with_mixed_button_config(self) -> None:
         """Test JS file modification with mixed true/false button values."""
