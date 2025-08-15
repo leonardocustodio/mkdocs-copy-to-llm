@@ -62,12 +62,23 @@ ${content}`;
       try {
         const parsed = JSON.parse(metaButtons.content);
         if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          // Helper function to parse boolean values
+          const parseBoolean = (value, defaultValue) => {
+            if (value === false || value === 'false' || value === 0 || value === '0') {
+              return false;
+            }
+            if (value === true || value === 'true' || value === 1 || value === '1') {
+              return true;
+            }
+            return defaultValue;
+          };
+          
           return {
-            copy_page: parsed.copy_page === false ? false : defaults.copy_page,
-            copy_markdown_link: parsed.copy_markdown_link === false ? false : defaults.copy_markdown_link,
-            view_as_markdown: parsed.view_as_markdown === false ? false : defaults.view_as_markdown,
-            open_in_chatgpt: parsed.open_in_chatgpt === false ? false : defaults.open_in_chatgpt,
-            open_in_claude: parsed.open_in_claude === false ? false : defaults.open_in_claude
+            copy_page: parseBoolean(parsed.copy_page, defaults.copy_page),
+            copy_markdown_link: parseBoolean(parsed.copy_markdown_link, defaults.copy_markdown_link),
+            view_as_markdown: parseBoolean(parsed.view_as_markdown, defaults.view_as_markdown),
+            open_in_chatgpt: parseBoolean(parsed.open_in_chatgpt, defaults.open_in_chatgpt),
+            open_in_claude: parseBoolean(parsed.open_in_claude, defaults.open_in_claude)
           };
         }
       } catch (e) {
