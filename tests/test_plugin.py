@@ -595,7 +595,7 @@ class TestCopyToLLMPlugin:
                 "copy_markdown_link": False,
                 "view_as_markdown": False,
                 "copy_page": False,
-            }
+            },
         }
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -620,13 +620,15 @@ class TestCopyToLLMPlugin:
 
                 # Verify that button conditionals were replaced
                 content = js_dest.read_text()
-                
+
                 # Check that the ChatGPT button block is disabled
                 assert "if (false) { // ChatGPT button disabled by config" in content
                 # Check that the Claude button block is disabled
                 assert "if (false) { // Claude button disabled by config" in content
                 # Check that copy markdown link is disabled
-                assert "if (false) { // Copy markdown link disabled by config" in content
+                assert (
+                    "if (false) { // Copy markdown link disabled by config" in content
+                )
                 # Check that view as markdown is disabled
                 assert "if (false) { // View as markdown disabled by config" in content
                 # Check that copy page is disabled
@@ -641,7 +643,7 @@ class TestCopyToLLMPlugin:
                 "open_in_chatgpt": False,
                 "open_in_claude": False,
                 # Other buttons not specified, should not be modified
-            }
+            },
         }
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -666,12 +668,12 @@ class TestCopyToLLMPlugin:
 
                 # Verify that only specified button conditionals were replaced
                 content = js_dest.read_text()
-                
+
                 # Check that the ChatGPT button block is disabled
                 assert "if (false) { // ChatGPT button disabled by config" in content
                 # Check that the Claude button block is disabled
                 assert "if (false) { // Claude button disabled by config" in content
-                
+
                 # Check that other buttons are NOT modified
                 assert "if (buttonsConfig.copy_markdown_link !== false)" in content
                 assert "if (buttonsConfig.view_as_markdown !== false)" in content
@@ -681,7 +683,9 @@ class TestCopyToLLMPlugin:
     def test_on_pre_build_with_no_button_config(self) -> None:
         """Test that JS file is not modified when no button config is provided."""
         plugin = CopyToLLMPlugin()
-        plugin.config = {"minify": False}  # No buttons configuration, but disable minification
+        plugin.config = {
+            "minify": False
+        }  # No buttons configuration, but disable minification
 
         with tempfile.TemporaryDirectory() as tmpdir:
             config = Config(schema=())
@@ -705,14 +709,14 @@ class TestCopyToLLMPlugin:
 
                 # Verify that button conditionals were NOT replaced
                 content = js_dest.read_text()
-                
+
                 # Check that original conditionals are preserved
                 assert "if (buttonsConfig.open_in_chatgpt !== false)" in content
                 assert "if (buttonsConfig.open_in_claude !== false)" in content
                 assert "if (buttonsConfig.copy_markdown_link !== false)" in content
                 assert "if (buttonsConfig.view_as_markdown !== false)" in content
                 assert "if (buttonsConfig.copy_page === false)" in content
-                
+
                 # Check that no disabled comments were added
                 assert "// ChatGPT button disabled by config" not in content
                 assert "// Claude button disabled by config" not in content
@@ -728,7 +732,7 @@ class TestCopyToLLMPlugin:
                 "copy_markdown_link": False,
                 "view_as_markdown": True,
                 "copy_page": True,
-            }
+            },
         }
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -753,11 +757,13 @@ class TestCopyToLLMPlugin:
 
                 # Verify the modifications
                 content = js_dest.read_text()
-                
+
                 # Check that false buttons are disabled
                 assert "if (false) { // ChatGPT button disabled by config" in content
-                assert "if (false) { // Copy markdown link disabled by config" in content
-                
+                assert (
+                    "if (false) { // Copy markdown link disabled by config" in content
+                )
+
                 # Check that true buttons are NOT modified
                 assert "if (buttonsConfig.open_in_claude !== false)" in content
                 assert "if (buttonsConfig.view_as_markdown !== false)" in content

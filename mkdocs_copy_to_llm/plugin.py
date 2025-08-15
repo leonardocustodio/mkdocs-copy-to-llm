@@ -151,38 +151,38 @@ class CopyToLLMPlugin(BasePlugin[CopyToLLMPluginConfig]):
 
                 # Process button visibility by modifying the JS
                 buttons_config = self.config.get("buttons", {})
-                
+
                 # Replace the button visibility checks based on config
                 if buttons_config.get("open_in_chatgpt") is False:
                     # Replace the ChatGPT button block with a comment
                     js_content = js_content.replace(
-                        'if (buttonsConfig.open_in_chatgpt !== false) {',
-                        'if (false) { // ChatGPT button disabled by config'
+                        "if (buttonsConfig.open_in_chatgpt !== false) {",
+                        "if (false) { // ChatGPT button disabled by config",
                     )
-                
+
                 if buttons_config.get("open_in_claude") is False:
                     # Replace the Claude button block with a comment
                     js_content = js_content.replace(
-                        'if (buttonsConfig.open_in_claude !== false) {',
-                        'if (false) { // Claude button disabled by config'
+                        "if (buttonsConfig.open_in_claude !== false) {",
+                        "if (false) { // Claude button disabled by config",
                     )
-                
+
                 if buttons_config.get("copy_markdown_link") is False:
                     js_content = js_content.replace(
-                        'if (buttonsConfig.copy_markdown_link !== false) {',
-                        'if (false) { // Copy markdown link disabled by config'
+                        "if (buttonsConfig.copy_markdown_link !== false) {",
+                        "if (false) { // Copy markdown link disabled by config",
                     )
-                
+
                 if buttons_config.get("view_as_markdown") is False:
                     js_content = js_content.replace(
-                        'if (buttonsConfig.view_as_markdown !== false) {',
-                        'if (false) { // View as markdown disabled by config'
+                        "if (buttonsConfig.view_as_markdown !== false) {",
+                        "if (false) { // View as markdown disabled by config",
                     )
-                
+
                 if buttons_config.get("copy_page") is False:
                     js_content = js_content.replace(
-                        'if (buttonsConfig.copy_page === false) {',
-                        'if (true) { // Copy page disabled by config'
+                        "if (buttonsConfig.copy_page === false) {",
+                        "if (true) { // Copy page disabled by config",
                     )
 
                 if self.config.get("minify", True) and should_minify(dict(config)):
