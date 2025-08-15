@@ -149,6 +149,42 @@ class CopyToLLMPlugin(BasePlugin[CopyToLLMPluginConfig]):
                 with open(js_src, encoding="utf-8") as f:
                     js_content = f.read()
 
+                # Process button visibility by modifying the JS
+                buttons_config = self.config.get("buttons", {})
+
+                # Replace the button visibility checks based on config
+                if buttons_config.get("open_in_chatgpt") is False:
+                    # Replace the ChatGPT button block with a comment
+                    js_content = js_content.replace(
+                        "if (true) { // open_in_chatgpt button",
+                        "if (false) { // open_in_chatgpt button disabled",
+                    )
+
+                if buttons_config.get("open_in_claude") is False:
+                    # Replace the Claude button block with a comment
+                    js_content = js_content.replace(
+                        "if (true) { // open_in_claude button",
+                        "if (false) { // open_in_claude button disabled",
+                    )
+
+                if buttons_config.get("copy_markdown_link") is False:
+                    js_content = js_content.replace(
+                        "if (true) { // copy_markdown_link button",
+                        "if (false) { // copy_markdown_link button disabled",
+                    )
+
+                if buttons_config.get("view_as_markdown") is False:
+                    js_content = js_content.replace(
+                        "if (true) { // view_as_markdown button",
+                        "if (false) { // view_as_markdown button disabled",
+                    )
+
+                if buttons_config.get("copy_page") is False:
+                    js_content = js_content.replace(
+                        "if (false) { // copy_page button disabled check",
+                        "if (true) { // copy_page button disabled",
+                    )
+
                 if self.config.get("minify", True) and should_minify(dict(config)):
                     js_content = minify_js(js_content)
                     utils.log.info("Minified Copy to LLM JavaScript")
@@ -226,26 +262,6 @@ class CopyToLLMPlugin(BasePlugin[CopyToLLMPluginConfig]):
         analytics_enabled = "true" if self.config.get("analytics", False) else "false"
         meta_tags.append(
             f'<meta name="mkdocs-copy-to-llm-analytics" content="{analytics_enabled}">'
-        )
-
-        # Inject button visibility configuration
-        buttons_config = self.config.get("buttons", {})
-        # Set defaults for missing keys
-        buttons_config.setdefault("copy_page", True)
-        buttons_config.setdefault("copy_markdown_link", True)
-        buttons_config.setdefault("view_as_markdown", True)
-        buttons_config.setdefault("open_in_chatgpt", True)
-        buttons_config.setdefault("open_in_claude", True)
-
-        # Convert to JSON string for meta tag
-        import html as html_lib
-        import json
-
-        buttons_json = json.dumps(buttons_config)
-        # Safely escape JSON for HTML attribute context
-        buttons_content = html_lib.escape(buttons_json, quote=True)
-        meta_tags.append(
-            f'<meta name="mkdocs-copy-to-llm-buttons" content="{buttons_content}">'
         )
 
         # Insert all meta tags after <head> tag
