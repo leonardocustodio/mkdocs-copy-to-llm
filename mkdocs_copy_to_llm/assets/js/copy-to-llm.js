@@ -48,45 +48,6 @@ ${content}`;
     return metaAnalytics && metaAnalytics.content === 'true';
   }
 
-  // Get button visibility configuration
-  function getButtonsConfig() {
-    const defaults = {
-      copy_page: true,
-      copy_markdown_link: true,
-      view_as_markdown: true,
-      open_in_chatgpt: true,
-      open_in_claude: true
-    };
-    const metaButtons = document.querySelector('meta[name="mkdocs-copy-to-llm-buttons"]');
-    if (metaButtons && metaButtons.content) {
-      try {
-        const parsed = JSON.parse(metaButtons.content);
-        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-          // Helper function to parse boolean values
-          const parseBoolean = (value, defaultValue) => {
-            if (value === false || value === 'false' || value === 0 || value === '0') {
-              return false;
-            }
-            if (value === true || value === 'true' || value === 1 || value === '1') {
-              return true;
-            }
-            return defaultValue;
-          };
-          
-          return {
-            copy_page: parseBoolean(parsed.copy_page, defaults.copy_page),
-            copy_markdown_link: parseBoolean(parsed.copy_markdown_link, defaults.copy_markdown_link),
-            view_as_markdown: parseBoolean(parsed.view_as_markdown, defaults.view_as_markdown),
-            open_in_chatgpt: parseBoolean(parsed.open_in_chatgpt, defaults.open_in_chatgpt),
-            open_in_claude: parseBoolean(parsed.open_in_claude, defaults.open_in_claude)
-          };
-        }
-      } catch (e) {
-        console.error('Failed to parse buttons config:', e);
-      }
-    }
-    return defaults;
-  }
 
   // Track copy event to analytics
   function trackCopyEvent(eventType, contentLength) {
@@ -440,11 +401,11 @@ ${content}`;
     dropdownMenu.setAttribute('role', 'menu');
     dropdownMenu.setAttribute('aria-labelledby', 'dropdown-button');
 
-    // Get button visibility config
-    const buttonsConfig = getButtonsConfig();
+    // Button visibility is controlled at build time
     let dropdownItems = [];
 
-    if (buttonsConfig.copy_markdown_link !== false) {
+    // The following conditionals are modified during build based on config
+    if (true) { // copy_markdown_link button
       dropdownItems.push(`
         <button class="copy-to-llm-dropdown-item" data-action="copy-markdown-link" role="menuitem" tabindex="-1">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 1024 1024" aria-hidden="true">
@@ -455,7 +416,7 @@ ${content}`;
       `);
     }
 
-    if (buttonsConfig.view_as_markdown !== false) {
+    if (true) { // view_as_markdown button
       dropdownItems.push(`
         <button class="copy-to-llm-dropdown-item" data-action="view-markdown" role="menuitem" tabindex="-1">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
@@ -469,7 +430,7 @@ ${content}`;
       `);
     }
 
-    if (buttonsConfig.open_in_chatgpt !== false) {
+    if (true) { // open_in_chatgpt button
       dropdownItems.push(`
         <button class="copy-to-llm-dropdown-item" data-action="open-chatgpt" role="menuitem" tabindex="-1">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
@@ -483,7 +444,7 @@ ${content}`;
       `);
     }
 
-    if (buttonsConfig.open_in_claude !== false) {
+    if (true) { // open_in_claude button
       dropdownItems.push(`
         <button class="copy-to-llm-dropdown-item" data-action="open-claude" role="menuitem" tabindex="-1">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
@@ -557,11 +518,9 @@ ${content}`;
 
   // Add copy buttons to article sections
   function addSectionCopyButtons() {
-    // Get button visibility config
-    const buttonsConfig = getButtonsConfig();
-
-    // Don't add any buttons if copy_page is disabled
-    if (buttonsConfig.copy_page === false) {
+    // Button visibility is controlled at build time
+    // The following conditional is modified during build based on config
+    if (false) { // copy_page button disabled check
       return;
     }
 

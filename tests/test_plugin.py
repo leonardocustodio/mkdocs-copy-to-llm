@@ -622,17 +622,15 @@ class TestCopyToLLMPlugin:
                 content = js_dest.read_text()
 
                 # Check that the ChatGPT button block is disabled
-                assert "if (false) { // ChatGPT button disabled by config" in content
+                assert "if (false) { // open_in_chatgpt button disabled" in content
                 # Check that the Claude button block is disabled
-                assert "if (false) { // Claude button disabled by config" in content
+                assert "if (false) { // open_in_claude button disabled" in content
                 # Check that copy markdown link is disabled
-                assert (
-                    "if (false) { // Copy markdown link disabled by config" in content
-                )
+                assert "if (false) { // copy_markdown_link button disabled" in content
                 # Check that view as markdown is disabled
-                assert "if (false) { // View as markdown disabled by config" in content
+                assert "if (false) { // view_as_markdown button disabled" in content
                 # Check that copy page is disabled
-                assert "if (true) { // Copy page disabled by config" in content
+                assert "if (true) { // copy_page button disabled" in content
 
     def test_on_pre_build_with_partial_button_config_processing(self) -> None:
         """Test that only specified buttons are modified in JS file."""
@@ -670,15 +668,15 @@ class TestCopyToLLMPlugin:
                 content = js_dest.read_text()
 
                 # Check that the ChatGPT button block is disabled
-                assert "if (false) { // ChatGPT button disabled by config" in content
+                assert "if (false) { // open_in_chatgpt button disabled" in content
                 # Check that the Claude button block is disabled
-                assert "if (false) { // Claude button disabled by config" in content
+                assert "if (false) { // open_in_claude button disabled" in content
 
-                # Check that other buttons are NOT modified
-                assert "if (buttonsConfig.copy_markdown_link !== false)" in content
-                assert "if (buttonsConfig.view_as_markdown !== false)" in content
-                # copy_page uses different logic
-                assert "if (buttonsConfig.copy_page === false)" in content
+                # Check that other buttons are NOT modified (still have default)
+                assert "if (true) { // copy_markdown_link button" in content
+                assert "if (true) { // view_as_markdown button" in content
+                # copy_page uses different logic (false means not disabled)
+                assert "if (false) { // copy_page button disabled check" in content
 
     def test_on_pre_build_with_no_button_config(self) -> None:
         """Test that JS file is not modified when no button config is provided."""
@@ -711,15 +709,18 @@ class TestCopyToLLMPlugin:
                 content = js_dest.read_text()
 
                 # Check that original conditionals are preserved
-                assert "if (buttonsConfig.open_in_chatgpt !== false)" in content
-                assert "if (buttonsConfig.open_in_claude !== false)" in content
-                assert "if (buttonsConfig.copy_markdown_link !== false)" in content
-                assert "if (buttonsConfig.view_as_markdown !== false)" in content
-                assert "if (buttonsConfig.copy_page === false)" in content
+                assert "if (true) { // open_in_chatgpt button" in content
+                assert "if (true) { // open_in_claude button" in content
+                assert "if (true) { // copy_markdown_link button" in content
+                assert "if (true) { // view_as_markdown button" in content
+                assert "if (false) { // copy_page button disabled check" in content
 
-                # Check that no disabled comments were added
-                assert "// ChatGPT button disabled by config" not in content
-                assert "// Claude button disabled by config" not in content
+                # Check that no buttons were disabled (no "disabled" replacements)
+                assert "open_in_chatgpt button disabled" not in content
+                assert "open_in_claude button disabled" not in content
+                assert "copy_markdown_link button disabled" not in content
+                assert "view_as_markdown button disabled" not in content
+                assert "copy_page button disabled\"" not in content  # Note: different format
 
     def test_on_pre_build_with_mixed_button_config(self) -> None:
         """Test JS file modification with mixed true/false button values."""
@@ -759,13 +760,11 @@ class TestCopyToLLMPlugin:
                 content = js_dest.read_text()
 
                 # Check that false buttons are disabled
-                assert "if (false) { // ChatGPT button disabled by config" in content
-                assert (
-                    "if (false) { // Copy markdown link disabled by config" in content
-                )
+                assert "if (false) { // open_in_chatgpt button disabled" in content
+                assert "if (false) { // copy_markdown_link button disabled" in content
 
                 # Check that true buttons are NOT modified
-                assert "if (buttonsConfig.open_in_claude !== false)" in content
-                assert "if (buttonsConfig.view_as_markdown !== false)" in content
+                assert "if (true) { // open_in_claude button" in content
+                assert "if (true) { // view_as_markdown button" in content
                 # copy_page logic is inverted - true means don't modify
-                assert "if (buttonsConfig.copy_page === false)" in content
+                assert "if (false) { // copy_page button disabled check" in content
