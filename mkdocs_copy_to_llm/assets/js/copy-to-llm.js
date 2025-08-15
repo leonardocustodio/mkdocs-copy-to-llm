@@ -50,42 +50,22 @@ ${content}`;
 
   // Get button visibility configuration
   function getButtonsConfig() {
-    const defaults = {
+    const metaButtons = document.querySelector('meta[name="mkdocs-copy-to-llm-buttons"]');
+    if (metaButtons && metaButtons.content) {
+      try {
+        return JSON.parse(metaButtons.content);
+      } catch (e) {
+        console.error('Failed to parse buttons config:', e);
+      }
+    }
+    // Return defaults if no config or parse error
+    return {
       copy_page: true,
       copy_markdown_link: true,
       view_as_markdown: true,
       open_in_chatgpt: true,
       open_in_claude: true
     };
-    const metaButtons = document.querySelector('meta[name="mkdocs-copy-to-llm-buttons"]');
-    if (metaButtons && metaButtons.content) {
-      try {
-        const parsed = JSON.parse(metaButtons.content);
-        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-          // Helper function to parse boolean values
-          const parseBoolean = (value, defaultValue) => {
-            if (value === false || value === 'false' || value === 0 || value === '0') {
-              return false;
-            }
-            if (value === true || value === 'true' || value === 1 || value === '1') {
-              return true;
-            }
-            return defaultValue;
-          };
-          
-          return {
-            copy_page: parseBoolean(parsed.copy_page, defaults.copy_page),
-            copy_markdown_link: parseBoolean(parsed.copy_markdown_link, defaults.copy_markdown_link),
-            view_as_markdown: parseBoolean(parsed.view_as_markdown, defaults.view_as_markdown),
-            open_in_chatgpt: parseBoolean(parsed.open_in_chatgpt, defaults.open_in_chatgpt),
-            open_in_claude: parseBoolean(parsed.open_in_claude, defaults.open_in_claude)
-          };
-        }
-      } catch (e) {
-        console.error('Failed to parse buttons config:', e);
-      }
-    }
-    return defaults;
   }
 
   // Track copy event to analytics
@@ -497,14 +477,7 @@ ${content}`;
       `);
     }
 
-    const itemsHtml = dropdownItems.join('');
-    if (!itemsHtml.trim()) {
-      // No items to show; hide dropdown UI
-      dropdownButton.style.display = 'none';
-      dropdownMenu.remove();
-    } else {
-      dropdownMenu.innerHTML = itemsHtml;
-    }
+    dropdownMenu.innerHTML = dropdownItems.join('');
 
     container.appendChild(copyButton);
     container.appendChild(dropdownButton);
