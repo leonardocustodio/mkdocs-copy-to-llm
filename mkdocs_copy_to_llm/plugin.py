@@ -25,6 +25,16 @@ class CopyToLLMPluginConfig(Config):
     repo_url = config_options.Type(str, default="")
     minify = config_options.Type(bool, default=True)
     analytics = config_options.Type(bool, default=False)
+    buttons = config_options.Type(
+        dict,
+        default={
+            "copy_page": True,
+            "copy_markdown_link": True,
+            "view_as_markdown": True,
+            "open_in_chatgpt": True,
+            "open_in_claude": True,
+        },
+    )
 
 
 class CopyToLLMPlugin(BasePlugin[CopyToLLMPluginConfig]):
@@ -216,6 +226,26 @@ class CopyToLLMPlugin(BasePlugin[CopyToLLMPluginConfig]):
         analytics_enabled = "true" if self.config.get("analytics", False) else "false"
         meta_tags.append(
             f'<meta name="mkdocs-copy-to-llm-analytics" content="{analytics_enabled}">'
+        )
+
+        # Inject button visibility configuration
+        buttons_config = self.config.get("buttons", {})
+        # Set defaults for missing keys
+        buttons_config.setdefault("copy_page", True)
+        buttons_config.setdefault("copy_markdown_link", True)
+        buttons_config.setdefault("view_as_markdown", True)
+        buttons_config.setdefault("open_in_chatgpt", True)
+        buttons_config.setdefault("open_in_claude", True)
+
+        # Convert to JSON string for meta tag
+        import html as html_lib
+        import json
+
+        buttons_json = json.dumps(buttons_config)
+        # Safely escape JSON for HTML attribute context
+        buttons_content = html_lib.escape(buttons_json, quote=True)
+        meta_tags.append(
+            f'<meta name="mkdocs-copy-to-llm-buttons" content="{buttons_content}">'
         )
 
         # Insert all meta tags after <head> tag

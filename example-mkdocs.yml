@@ -12,6 +12,14 @@ plugins:
     # button_hover_color: "var(--md-primary-fg-color)"
     # toast_bg_color: "var(--md-primary-fg-color)"
     # toast_text_color: "#ffffff"
+    #
+    # Optional button visibility configuration:
+    # buttons:
+    #   copy_page: true          # Show/hide the main copy page button
+    #   copy_markdown_link: true # Show/hide copy markdown link option
+    #   view_as_markdown: true   # Show/hide view as markdown option
+    #   open_in_chatgpt: true    # Show/hide open in ChatGPT option
+    #   open_in_claude: true     # Show/hide open in Claude option
 
 # The plugin will automatically inject the necessary CSS and JavaScript
 # No need to manually add them to extra_css or extra_javascript
