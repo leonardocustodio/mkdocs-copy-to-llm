@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mkdocs-copy-to-llm"
-version = "0.2.2"
+version = "0.2.3"
 description = "MkDocs plugin to add 'Copy to LLM' buttons to documentation"
 readme = "README.md"
 requires-python = ">=3.9"

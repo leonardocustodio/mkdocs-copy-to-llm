@@ -513,6 +513,201 @@ class TestCopyToLLMPlugin:
             "assets/copy-to-llm/copy-to-llm.css"
         )
 
+    def test_button_visibility_configuration_defaults(self) -> None:
+        """Test that button visibility configuration has correct defaults."""
+        config = CopyToLLMPluginConfig()
+        assert config.buttons == {
+            "copy_page": True,
+            "copy_markdown_link": True,
+            "view_as_markdown": True,
+            "open_in_chatgpt": True,
+            "open_in_claude": True,
+        }
+
+    def test_button_visibility_configuration_false_values(self) -> None:
+        """Test button visibility configuration with false values."""
+        plugin = CopyToLLMPlugin()
+        plugin.config = {
+            "buttons": {
+                "copy_page": False,
+                "copy_markdown_link": False,
+                "view_as_markdown": False,
+                "open_in_chatgpt": False,
+                "open_in_claude": False,
+            }
+        }
+
+        html = "<head></head><body>Test</body>"
+        config = Config(schema=())
+
+        result = plugin.on_page_content(html, None, config, None)
+
+        # Check that the buttons configuration is in the meta tag
+        assert 'meta name="mkdocs-copy-to-llm-buttons"' in result
+        # The JSON should contain false values (checking for HTML-escaped quotes)
+        assert (
+            "&quot;copy_page&quot;: false" in result or '"copy_page": false' in result
+        )
+        assert (
+            "&quot;open_in_chatgpt&quot;: false" in result
+            or '"open_in_chatgpt": false' in result
+        )
+        assert (
+            "&quot;open_in_claude&quot;: false" in result
+            or '"open_in_claude": false' in result
+        )
+
+    def test_button_visibility_configuration_mixed_values(self) -> None:
+        """Test button visibility configuration with mixed true/false values."""
+        plugin = CopyToLLMPlugin()
+        plugin.config = {
+            "buttons": {
+                "copy_page": True,
+                "copy_markdown_link": True,
+                "view_as_markdown": True,
+                "open_in_chatgpt": False,  # Only these two are false
+                "open_in_claude": False,
+            }
+        }
+
+        html = "<head></head><body>Test</body>"
+        config = Config(schema=())
+
+        result = plugin.on_page_content(html, None, config, None)
+
+        # Check that the buttons configuration is in the meta tag
+        assert 'meta name="mkdocs-copy-to-llm-buttons"' in result
+        # The JSON should contain the mixed values (checking for HTML-escaped quotes)
+        assert "&quot;copy_page&quot;: true" in result or '"copy_page": true' in result
+        assert (
+            "&quot;open_in_chatgpt&quot;: false" in result
+            or '"open_in_chatgpt": false' in result
+        )
+        assert (
+            "&quot;open_in_claude&quot;: false" in result
+            or '"open_in_claude": false' in result
+        )
+
+    def test_button_visibility_configuration_partial(self) -> None:
+        """Test button visibility configuration with only some buttons specified."""
+        plugin = CopyToLLMPlugin()
+        plugin.config = {
+            "buttons": {
+                "open_in_chatgpt": False,
+                "open_in_claude": False,
+                # Other buttons not specified, should use defaults
+            }
+        }
+
+        html = "<head></head><body>Test</body>"
+        config = Config(schema=())
+
+        result = plugin.on_page_content(html, None, config, None)
+
+        # Check that the button configuration is in the meta tag
+        assert 'meta name="mkdocs-copy-to-llm-buttons"' in result
+        # Unspecified buttons should be shown by default
+        assert "&quot;copy_page&quot;: true" in result or '"copy_page": true' in result
+        assert (
+            "&quot;copy_markdown_link&quot;: true" in result
+            or '"copy_markdown_link": true' in result
+        )
+        # Specified buttons should have their set values
+        assert (
+            "&quot;open_in_chatgpt&quot;: false" in result
+            or '"open_in_chatgpt": false' in result
+        )
+        assert (
+            "&quot;open_in_claude&quot;: false" in result
+            or '"open_in_claude": false' in result
+        )
+
+    def test_button_visibility_configuration_empty(self) -> None:
+        """Test button visibility configuration with empty buttons dict."""
+        plugin = CopyToLLMPlugin()
+        plugin.config = {"buttons": {}}
+
+        html = "<head></head><body>Test</body>"
+        config = Config(schema=())
+
+        result = plugin.on_page_content(html, None, config, None)
+
+        # Check that the button configuration is in the meta tag with defaults
+        assert 'meta name="mkdocs-copy-to-llm-buttons"' in result
+        # All buttons should be shown by default
+        assert "&quot;copy_page&quot;: true" in result or '"copy_page": true' in result
+        assert (
+            "&quot;open_in_chatgpt&quot;: true" in result
+            or '"open_in_chatgpt": true' in result
+        )
+        assert (
+            "&quot;open_in_claude&quot;: true" in result
+            or '"open_in_claude": true' in result
+        )
+
+    def test_button_visibility_html_escaping(self) -> None:
+        """Test that button configuration is properly HTML escaped."""
+        plugin = CopyToLLMPlugin()
+        plugin.config = {
+            "buttons": {
+                "copy_page": True,
+                "open_in_chatgpt": False,
+                "open_in_claude": False,
+            }
+        }
+
+        html = "<head></head><body>Test</body>"
+        config = Config(schema=())
+
+        result = plugin.on_page_content(html, None, config, None)
+
+        # Check that quotes are properly escaped in the HTML attribute
+        assert 'meta name="mkdocs-copy-to-llm-buttons" content=' in result
+        # The content should be properly escaped for HTML
+        assert "&quot;" in result or 'content="{' in result
+
+    def test_button_visibility_meta_tag_format(self) -> None:
+        """Test that button visibility meta tag is correctly formatted."""
+        plugin = CopyToLLMPlugin()
+        plugin.config = {
+            "buttons": {
+                "copy_page": False,
+                "copy_markdown_link": True,
+                "view_as_markdown": True,
+                "open_in_chatgpt": False,
+                "open_in_claude": False,
+            }
+        }
+
+        html = "<head></head><body>Test</body>"
+        config = Config(schema=())
+
+        result = plugin.on_page_content(html, None, config, None)
+
+        # Extract the meta tag content
+        import html as html_lib
+        import re
+
+        meta_match = re.search(
+            r'<meta name="mkdocs-copy-to-llm-buttons" content="([^"]*)">', result
+        )
+        assert meta_match is not None
+
+        # Unescape the HTML entities
+        json_str = html_lib.unescape(meta_match.group(1))
+
+        # Parse the JSON to verify it's valid
+        import json
+
+        buttons_config = json.loads(json_str)
+
+        # Verify the parsed values
+        assert buttons_config["copy_page"] is False
+        assert buttons_config["copy_markdown_link"] is True
+        assert buttons_config["view_as_markdown"] is True
+        assert buttons_config["open_in_chatgpt"] is False
+        assert buttons_config["open_in_claude"] is False
+
     def test_on_page_content_without_head_tag(self) -> None:
         """Test on_page_content when HTML has no head tag."""
         plugin = CopyToLLMPlugin()
