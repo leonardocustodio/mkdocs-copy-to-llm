@@ -1,0 +1,14 @@
+# Core dependencies
+mkdocs>=1.6
+mkdocs-material>=9.0
+
+# Copy to LLM plugin
+mkdocs-copy-to-llm>=0.2.4
+
+# Optional: Minification support (recommended for production)
+jsmin>=3.0.0
+csscompressor>=0.9.5
+
+# Material theme extensions
+pymdown-extensions>=10.0
+pygments>=2.16
