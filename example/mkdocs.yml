@@ -1,27 +1,20 @@
 site_name: MkDocs - Copy to LLM
 site_description: Example documentation showcasing the MkDocs Copy to LLM plugin
 site_author: Leonardo Custodio
-site_url: https://example.com
-repo_name: mkdocs-copy-to-llm
+site_url: https://leonardocustodio.github.io/mkdocs-copy-to-llm/
 repo_url: https://github.com/leonardocustodio/mkdocs-copy-to-llm
-edit_uri: edit/main/docs/
+edit_uri: edit/main/example/docs
 
 # Theme configuration
 theme:
   name: material
   language: en
+  features:
+    - content.action.edit
 
 # Plugins
 plugins:
   - copy-to-llm:
-      # ===== REPOSITORY CONFIGURATION =====
-      # Base URL for raw repository content (used for markdown links)
-      # Examples:
-      # GitHub: https://raw.githubusercontent.com/owner/repo/branch
-      # GitLab: https://gitlab.com/owner/repo/-/raw/branch
-      # Bitbucket: https://bitbucket.org/owner/repo/raw/branch
-      repo_url: "https://raw.githubusercontent.com/leonardocustodio/mkdocs-copy-to-llm/refs/heads/main/example"
-
       # ===== COLOR CUSTOMIZATION =====
       # All color options accept: hex (#RRGGBB), rgb(), rgba(), CSS color names, or CSS variables
 
