@@ -28,7 +28,7 @@
 .copy-to-llm-split-container {
   display: inline-flex;
   margin-left: auto;
-  border: 1px solid var(--mystic);
+  border: 1px solid var(--mystic, #e0e0e0);
   border-radius: 6px;
   overflow: visible;
   position: relative;
@@ -41,8 +41,8 @@
   line-height: 1.2;
   font-size: 0.85em;
   font-family: var(--md-text-font-family);
-  background-color: var(--copy-to-llm-button-bg, var(--white));
-  color: var(--black);
+  background-color: var(--copy-to-llm-button-bg, #ffffff);
+  color: var(--black, #000000);
   border: none;
   cursor: pointer;
   transition: all 0.2s;
@@ -107,8 +107,8 @@
   position: absolute;
   top: calc(100% + 4px);
   right: 0;
-  background-color: var(--white);
-  border: 1px solid var(--mystic);
+  background-color: var(--white, #ffffff);
+  border: 1px solid var(--mystic, #e0e0e0);
   border-radius: 6px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   min-width: 160px;
@@ -134,7 +134,7 @@
   text-align: left;
   font-family: var(--md-text-font-family);
   font-size: 0.75rem;
-  color: var(--black);
+  color: var(--black, #000000);
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
