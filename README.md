@@ -144,9 +144,8 @@ When enabled, the plugin will send copy events to your analytics platform (if co
 
 Supported analytics platforms:
 - Google Analytics (gtag.js)
-- Plausible Analytics
 
-**Important**: Analytics tracking is opt-in and disabled by default. The plugin will only track events when:
+**Important**: Analytics tracking is opt-in and **disabled by default**. The plugin will only track events when:
 1. The `analytics` option is explicitly set to `true` in your configuration
 2. An analytics platform is already configured on your site
 
@@ -206,4 +205,4 @@ The plugin is designed with accessibility in mind:
 
 ## License
 
-Apache License 2.0
+MIT
