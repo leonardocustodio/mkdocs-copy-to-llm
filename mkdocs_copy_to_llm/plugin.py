@@ -23,6 +23,7 @@ class CopyToLLMPluginConfig(Config):
     toast_bg_color = config_options.Type(str, default="")
     toast_text_color = config_options.Type(str, default="")
     repo_url = config_options.Type(str, default="")
+    base_path = config_options.Type(str, default="")
     minify = config_options.Type(bool, default=True)
     analytics = config_options.Type(bool, default=False)
     buttons = config_options.Type(
@@ -239,11 +240,16 @@ class CopyToLLMPlugin(BasePlugin[CopyToLLMPluginConfig]):
             # Wrap unexpected exceptions
             raise BuildError(f"Error during pre-build: {e}") from e
 
-    def on_page_content(
-        self, html: str, page: Any, config: MkDocsConfig, files: Any
-    ) -> str:
+    def on_post_page(self, output: str, page: Any, config: MkDocsConfig) -> str:
         """
-        Called after the page content is rendered
+        Called after the template has rendered the page.
+
+        Note: We use on_post_page instead of on_page_content because some themes
+        (like Material for MkDocs) don't provide the complete HTML with <head> tags
+        at the on_page_content stage. The on_page_content hook only receives the
+        converted Markdown content, not the full page template. Using on_post_page
+        ensures we can reliably inject meta tags into the <head> section after the
+        theme has fully rendered the page.
         """
         meta_tags = []
 
@@ -252,6 +258,13 @@ class CopyToLLMPlugin(BasePlugin[CopyToLLMPluginConfig]):
             repo_url = self.config["repo_url"]
             meta_tags.append(
                 f'<meta name="mkdocs-copy-to-llm-repo-url" content="{repo_url}">'
+            )
+
+        # Inject base_path if configured
+        if self.config.get("base_path"):
+            base_path = self.config["base_path"]
+            meta_tags.append(
+                f'<meta name="mkdocs-copy-to-llm-base-path" content="{base_path}">'
             )
 
         # Always inject the site name
@@ -266,9 +279,9 @@ class CopyToLLMPlugin(BasePlugin[CopyToLLMPluginConfig]):
 
         # Insert all meta tags after <head> tag
         meta_tags_str = "\n".join(meta_tags)
-        html = html.replace("<head>", f"<head>\n{meta_tags_str}", 1)
+        output = output.replace("<head>", f"<head>\n{meta_tags_str}", 1)
 
-        return html
+        return output
 
     def on_post_build(self, config: MkDocsConfig) -> None:
         """

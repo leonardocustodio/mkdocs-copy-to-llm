@@ -158,8 +158,30 @@ ${content}`;
     // Fallback: construct URL from current path
     const currentPath = window.location.pathname;
 
+    // Strip base_path prefix if configured
+    // This is needed when the site is deployed to a subdirectory (e.g., /docs/)
+    // and the repository files don't include that prefix
+    const metaBasePath = document.querySelector('meta[name="mkdocs-copy-to-llm-base-path"]');
+    let path = currentPath;
+
+    if (metaBasePath && metaBasePath.content) {
+      const basePath = metaBasePath.content;
+      // Ensure basePath starts with / for consistent comparison
+      const normalizedBasePath = basePath.startsWith('/') ? basePath : '/' + basePath;
+      // Remove trailing slash from basePath for consistent stripping
+      const basePathToStrip = normalizedBasePath.endsWith('/') ? normalizedBasePath.slice(0, -1) : normalizedBasePath;
+
+      if (path.startsWith(basePathToStrip)) {
+        path = path.slice(basePathToStrip.length);
+        // Ensure path starts with / after stripping
+        if (!path.startsWith('/')) {
+          path = '/' + path;
+        }
+      }
+    }
+
     // Remove the trailing slash if present
-    let path = currentPath.endsWith('/') ? currentPath.slice(0, -1) : currentPath;
+    path = path.endsWith('/') ? path.slice(0, -1) : path;
 
     // Handle root and index pages
     if (!path || path === '') {
