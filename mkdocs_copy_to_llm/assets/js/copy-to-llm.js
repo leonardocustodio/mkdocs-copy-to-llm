@@ -80,6 +80,39 @@ ${content}`;
     }
   }
 
+  // Get the main content element using fallback selectors
+  // Issue #19 fix: Support different Material theme versions and layouts
+  function getMainContentElement() {
+    // Try multiple selectors in order of preference
+    const selectors = [
+      '.md-content__inner .md-typeset',  // Material theme primary
+      '.md-content__inner',               // Material theme fallback
+      'article.md-content__inner',        // Material theme article variant
+      'main .md-typeset',                 // Material theme main variant
+      'article',                          // Generic article tag
+      '.md-content',                      // Material theme content class
+      'main'                              // Final fallback to main tag
+    ];
+
+    for (const selector of selectors) {
+      const element = document.querySelector(selector);
+      if (element) {
+        // Optional debug logging
+        if (window.copyToLLMDebug) {
+          console.log(`[Copy to LLM] Found content using selector: ${selector}`);
+        }
+        return element;
+      }
+    }
+
+    // No element found - log error and alert user
+    console.error('[Copy to LLM] Could not find content element. Tried selectors:', selectors);
+    if (window.copyToLLMDebug) {
+      alert('Copy to LLM: Could not locate page content. Please check the DOM structure.');
+    }
+    return null;
+  }
+
   // Get current page context
   function getPageContext() {
     return {
@@ -649,7 +682,7 @@ ${content}`;
             }, 3000);
           } else {
             // Fallback to formatted content if fetch fails
-            const articleContent = document.querySelector('.md-content__inner .md-typeset');
+            const articleContent = getMainContentElement();
             if (articleContent) {
               const formattedContent = formatSectionForLLM(articleContent);
               await copyToClipboard(formattedContent, copyButton, 'page_content');
@@ -669,7 +702,7 @@ ${content}`;
         } catch (error) {
           // Fallback to formatted content if fetch fails
           console.error('Failed to fetch markdown:', error);
-          const articleContent = document.querySelector('.md-content__inner .md-typeset');
+          const articleContent = getMainContentElement();
           if (articleContent) {
             const formattedContent = formatSectionForLLM(articleContent);
             await copyToClipboard(formattedContent, copyButton, 'page_content');
@@ -726,7 +759,7 @@ ${content}`;
         if (!item) return;
 
         const action = item.dataset.action;
-        const articleContent = document.querySelector('.md-content__inner .md-typeset');
+        const articleContent = getMainContentElement();
         let contentToCopy = '';
 
         switch(action) {

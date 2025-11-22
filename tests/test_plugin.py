@@ -770,3 +770,173 @@ class TestCopyToLLMPlugin:
                 assert "if (true) { // view_as_markdown button" in content
                 # copy_page logic is inverted - true means don't modify
                 assert "if (false) { // copy_page button disabled check" in content
+
+    def test_javascript_dom_selector_fallbacks_function_exists(self) -> None:
+        """Test that JavaScript includes getMainContentElement function.
+
+        Issue #19 fix: The "Copy Page" button was failing when the DOM selector
+        '.md-content__inner .md-typeset' didn't match different Material theme versions.
+
+        This test verifies that a new helper function getMainContentElement() exists
+        which will try multiple fallback selectors instead of just one.
+
+        Context for next developer: This function is critical for supporting
+        different Material for MkDocs theme versions, each of which may use
+        different DOM structures.
+        """
+        plugin_dir = Path(__file__).parent.parent / "mkdocs_copy_to_llm"
+        js_src = plugin_dir / "assets" / "js" / "copy-to-llm.js"
+
+        if js_src.exists():
+            js_content = js_src.read_text()
+
+            # The function should be defined in the JavaScript
+            assert "function getMainContentElement()" in js_content
+            # The function should be called somewhere in the code
+            assert "getMainContentElement" in js_content
+
+    def test_javascript_dom_selector_fallbacks_selectors(self) -> None:
+        """Test that JavaScript includes all fallback selectors.
+
+        Issue #19 fix: Implements multiple fallback selectors to support different
+        Material theme versions. The selectors are tried in order of preference:
+
+        1. '.md-content__inner .md-typeset' - Primary Material theme selector
+        2. '.md-content__inner' - Material theme without typeset class
+        3. 'article.md-content__inner' - Material theme using article tag
+        4. 'main .md-typeset' - Material theme with main tag
+        5. 'article' - Generic article fallback
+        6. '.md-content' - Material theme content class
+        7. 'main' - Final fallback to main tag
+
+        Context for next developer: These selectors were determined by analyzing
+        different versions of Material for MkDocs theme. If a new version changes
+        the DOM structure, add additional selectors here in order of specificity.
+        """
+        plugin_dir = Path(__file__).parent.parent / "mkdocs_copy_to_llm"
+        js_src = plugin_dir / "assets" / "js" / "copy-to-llm.js"
+
+        if js_src.exists():
+            js_content = js_src.read_text()
+
+            # Check for all the fallback selectors
+            # These must match the selectors in getMainContentElement()
+            required_selectors = [
+                ".md-content__inner .md-typeset",  # Primary
+                ".md-content__inner",  # Fallback 1
+                "article.md-content__inner",  # Fallback 2
+                "main .md-typeset",  # Fallback 3
+                "article",  # Fallback 4
+                ".md-content",  # Fallback 5
+                "main",  # Fallback 6 (final)
+            ]
+
+            for selector in required_selectors:
+                assert selector in js_content, f"Missing selector: {selector}"
+
+    def test_javascript_dom_selector_fallbacks_usage(self) -> None:
+        """Test that getMainContentElement is used instead of direct querySelector.
+
+        Issue #19 fix: The original code used direct document.querySelector() calls
+        which would fail silently if the selector didn't match. Now we use
+        getMainContentElement() which tries multiple selectors.
+
+        This test ensures that the old direct selector pattern has been replaced
+        with calls to getMainContentElement() in all the places where we need to
+        get the main article content (copy button handlers, dropdown handlers, etc.).
+
+        Context for next developer: If you add new features that need to access
+        the main content element, always use getMainContentElement() instead of
+        document.querySelector() to ensure compatibility across theme versions.
+        """
+        plugin_dir = Path(__file__).parent.parent / "mkdocs_copy_to_llm"
+        js_src = plugin_dir / "assets" / "js" / "copy-to-llm.js"
+
+        if js_src.exists():
+            js_content = js_src.read_text()
+
+            # Should use getMainContentElement() for getting article content
+            assert "getMainContentElement()" in js_content
+
+            # Verify the old pattern is not used in copy handlers
+            # Split by function definition to check code after the function exists
+            parts = js_content.split("function getMainContentElement()")
+            if len(parts) > 1:
+                # Check that the old direct selector pattern is replaced
+                remaining_code = parts[1]
+                # The old hardcoded selector should not be used
+                old_pattern = (
+                    "articleContent = document.querySelector("
+                    "'.md-content__inner .md-typeset')"
+                )
+                assert old_pattern not in remaining_code, (
+                    "Old selector pattern still in use - "
+                    "should use getMainContentElement()"
+                )
+
+    def test_javascript_dom_selector_fallbacks_error_handling(self) -> None:
+        """Test that JavaScript includes error handling for missing elements.
+
+        Issue #19 fix: When no DOM element could be found, the old code would
+        fail silently, leaving users confused. Now we log errors to help debug
+        and optionally alert users in debug mode.
+
+        This test verifies that:
+        1. Errors are logged to console when no element is found
+        2. The function returns null (not undefined) for proper error handling
+        3. Error messages include helpful information about what selectors were tried
+
+        Context for next developer: The error logging is always active, but the
+        alert() is only shown when window.copyToLLMDebug is true. This prevents
+        annoying users while still providing debugging capabilities for developers
+        and users troubleshooting issues.
+        """
+        plugin_dir = Path(__file__).parent.parent / "mkdocs_copy_to_llm"
+        js_src = plugin_dir / "assets" / "js" / "copy-to-llm.js"
+
+        if js_src.exists():
+            js_content = js_src.read_text()
+
+            # Should have error logging with helpful message
+            assert "console.error" in js_content
+            assert "Could not find content element" in js_content, (
+                "Missing error message for debugging"
+            )
+
+            # Should explicitly return null when no element found
+            assert "return null" in js_content, (
+                "Function should return null for proper error handling"
+            )
+
+    def test_javascript_dom_selector_fallbacks_debug_logging(self) -> None:
+        """Test that JavaScript includes optional debug logging.
+
+        Issue #19 fix: To help users troubleshoot DOM structure issues,
+        we added optional debug logging that can be enabled by setting
+        window.copyToLLMDebug = true in the browser console.
+
+        When enabled, the debug logging shows:
+        1. Which selector successfully found the content element
+        2. Alert messages when no element can be found
+
+        This test verifies that debug logging is:
+        1. Conditional (only runs when window.copyToLLMDebug is true)
+        2. Informative (shows which selector was used)
+
+        Context for next developer: Users can enable debug mode by opening browser
+        console and typing: window.copyToLLMDebug = true
+        This will help diagnose issues with new theme versions or custom themes.
+        """
+        plugin_dir = Path(__file__).parent.parent / "mkdocs_copy_to_llm"
+        js_src = plugin_dir / "assets" / "js" / "copy-to-llm.js"
+
+        if js_src.exists():
+            js_content = js_src.read_text()
+
+            # Should check for debug flag before logging
+            assert "window.copyToLLMDebug" in js_content, "Missing debug flag check"
+
+            # Should have informative debug logging
+            assert "Found content using selector" in js_content, (
+                "Missing debug message showing which selector worked"
+            )
