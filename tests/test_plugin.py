@@ -33,6 +33,7 @@ class TestCopyToLLMPlugin:
         assert config.toast_bg_color == ""
         assert config.toast_text_color == ""
         assert config.repo_url == ""
+        assert config.base_path == ""
         assert config.minify is True
         assert config.analytics is False
 
@@ -74,8 +75,14 @@ class TestCopyToLLMPlugin:
         css = plugin._generate_custom_css()
         assert css == ""
 
-    def test_on_page_content_with_repo_url(self) -> None:
-        """Test the on_page_content hook with repo URL configuration."""
+    def test_on_post_page_with_repo_url(self) -> None:
+        """Test the on_post_page hook with repo URL configuration.
+
+        Issue #18 fix: Changed from on_page_content to on_post_page hook.
+        This ensures meta tags are injected after the full page HTML is rendered,
+        which is necessary for themes like Material for MkDocs that don't provide
+        the <head> tag at the on_page_content stage.
+        """
         plugin = CopyToLLMPlugin()
         plugin.config = {"repo_url": "https://raw.githubusercontent.com/test/repo/main"}
 
@@ -83,15 +90,19 @@ class TestCopyToLLMPlugin:
         config = Config(schema=())
         config["site_name"] = "Test Site"
 
-        result = plugin.on_page_content(html, None, config, None)
+        result = plugin.on_post_page(html, None, config)
 
         assert 'meta name="mkdocs-copy-to-llm-repo-url"' in result
         assert 'content="https://raw.githubusercontent.com/test/repo/main"' in result
         assert 'meta name="mkdocs-site-name"' in result
         assert 'content="Test Site"' in result
 
-    def test_on_page_content_without_repo_url(self) -> None:
-        """Test the on_page_content hook without repo URL configuration."""
+    def test_on_post_page_without_repo_url(self) -> None:
+        """Test the on_post_page hook without repo URL configuration.
+
+        Issue #18 fix: Verifies backward compatibility - the plugin should work
+        without a repo_url configured, just without the repo URL meta tag.
+        """
         plugin = CopyToLLMPlugin()
         plugin.config = {}
 
@@ -99,11 +110,52 @@ class TestCopyToLLMPlugin:
         config = Config(schema=())
         config["site_name"] = "Test Site"
 
-        result = plugin.on_page_content(html, None, config, None)
+        result = plugin.on_post_page(html, None, config)
 
         assert 'meta name="mkdocs-copy-to-llm-repo-url"' not in result
         assert 'meta name="mkdocs-site-name"' in result
         assert 'content="Test Site"' in result
+
+    def test_on_post_page_with_base_path(self) -> None:
+        """Test the on_post_page hook with base_path configuration.
+
+        Issue #18 fix: New base_path config option allows sites deployed to
+        subdirectories (e.g., /docs/) to strip that prefix when constructing
+        repository URLs. This test verifies the base_path meta tag is injected.
+        """
+        plugin = CopyToLLMPlugin()
+        plugin.config = {
+            "repo_url": "https://raw.githubusercontent.com/test/repo/main",
+            "base_path": "/docs/",
+        }
+
+        html = "<head></head><body>Test</body>"
+        config = Config(schema=())
+        config["site_name"] = "Test Site"
+
+        result = plugin.on_post_page(html, None, config)
+
+        assert 'meta name="mkdocs-copy-to-llm-base-path"' in result
+        assert 'content="/docs/"' in result
+        assert 'meta name="mkdocs-copy-to-llm-repo-url"' in result
+
+    def test_on_post_page_without_base_path(self) -> None:
+        """Test the on_post_page hook without base_path configuration.
+
+        Issue #18 fix: Verifies that base_path is optional and the plugin works
+        correctly when it's not configured (no base_path meta tag injected).
+        """
+        plugin = CopyToLLMPlugin()
+        plugin.config = {"repo_url": "https://raw.githubusercontent.com/test/repo/main"}
+
+        html = "<head></head><body>Test</body>"
+        config = Config(schema=())
+        config["site_name"] = "Test Site"
+
+        result = plugin.on_post_page(html, None, config)
+
+        assert 'meta name="mkdocs-copy-to-llm-base-path"' not in result
+        assert 'meta name="mkdocs-copy-to-llm-repo-url"' in result
 
     def test_on_pre_build(self) -> None:
         """Test the on_pre_build hook."""
@@ -216,7 +268,7 @@ class TestCopyToLLMPlugin:
         html = "<head></head><body>Test</body>"
         config = Config(schema=())
 
-        result = plugin.on_page_content(html, None, config, None)
+        result = plugin.on_post_page(html, None, config)
 
         assert 'meta name="mkdocs-copy-to-llm-analytics"' in result
         assert 'content="true"' in result
@@ -229,7 +281,7 @@ class TestCopyToLLMPlugin:
         html = "<head></head><body>Test</body>"
         config = Config(schema=())
 
-        result = plugin.on_page_content(html, None, config, None)
+        result = plugin.on_post_page(html, None, config)
 
         assert 'meta name="mkdocs-copy-to-llm-analytics"' in result
         assert 'content="false"' in result
@@ -513,8 +565,8 @@ class TestCopyToLLMPlugin:
             "assets/copy-to-llm/copy-to-llm.css"
         )
 
-    def test_on_page_content_without_head_tag(self) -> None:
-        """Test on_page_content when HTML has no head tag."""
+    def test_on_post_page_without_head_tag(self) -> None:
+        """Test on_post_page when HTML has no head tag."""
         plugin = CopyToLLMPlugin()
         plugin.config = {"repo_url": "https://example.com", "analytics": True}
 
@@ -522,7 +574,7 @@ class TestCopyToLLMPlugin:
         config = Config(schema=())
         config["site_name"] = "Test Site"
 
-        result = plugin.on_page_content(html, None, config, None)
+        result = plugin.on_post_page(html, None, config)
 
         # Should return original HTML unchanged
         assert result == html
@@ -940,3 +992,93 @@ class TestCopyToLLMPlugin:
             assert "Found content using selector" in js_content, (
                 "Missing debug message showing which selector worked"
             )
+
+    def test_javascript_base_path_meta_tag_selector(self) -> None:
+        """Test that JavaScript reads base_path from meta tag.
+
+        Issue #18 fix: Validates that the JavaScript code includes logic to read
+        the base_path from the mkdocs-copy-to-llm-base-path meta tag.
+        """
+        plugin_dir = Path(__file__).parent.parent / "mkdocs_copy_to_llm"
+        js_src = plugin_dir / "assets" / "js" / "copy-to-llm.js"
+
+        if js_src.exists():
+            js_content = js_src.read_text()
+
+            # Should contain code to read the base_path meta tag
+            assert 'meta[name="mkdocs-copy-to-llm-base-path"]' in js_content
+            assert "metaBasePath" in js_content
+
+    def test_javascript_base_path_stripping_logic(self) -> None:
+        """Test that JavaScript contains base path stripping logic.
+
+        Issue #18 fix: Validates that the JavaScript includes path manipulation
+        logic to strip the base_path prefix, normalize slashes, and ensure paths
+        start with / after stripping.
+        """
+        plugin_dir = Path(__file__).parent.parent / "mkdocs_copy_to_llm"
+        js_src = plugin_dir / "assets" / "js" / "copy-to-llm.js"
+
+        if js_src.exists():
+            js_content = js_src.read_text()
+
+            # Should contain logic to strip base path from pathname
+            assert "startsWith" in js_content
+            assert "slice" in js_content
+
+            # Should handle both with and without trailing slashes
+            assert "endsWith('/')" in js_content
+
+            # Should normalize paths to ensure they start with /
+            assert "startsWith('/')" in js_content or 'startsWith("/")' in js_content
+
+    def test_javascript_base_path_comments(self) -> None:
+        """Test that JavaScript has comments explaining base path handling.
+
+        Issue #18 fix: Ensures the JavaScript code includes explanatory comments
+        about why base path stripping is needed (for sites deployed to subdirectories).
+        """
+        plugin_dir = Path(__file__).parent.parent / "mkdocs_copy_to_llm"
+        js_src = plugin_dir / "assets" / "js" / "copy-to-llm.js"
+
+        if js_src.exists():
+            js_content = js_src.read_text()
+
+            # Should have comments explaining the base path logic
+            # Look for keywords in comments that explain why we're doing this
+            assert (
+                "subdirectory" in js_content.lower() or "deployed" in js_content.lower()
+            )
+
+    def test_javascript_base_path_conditional_logic(self) -> None:
+        """Test that base path stripping is conditional on meta tag presence.
+
+        Issue #18 fix: Validates that the JavaScript only strips the base path
+        when the meta tag is present, ensuring backward compatibility for sites
+        that don't configure base_path.
+        """
+        plugin_dir = Path(__file__).parent.parent / "mkdocs_copy_to_llm"
+        js_src = plugin_dir / "assets" / "js" / "copy-to-llm.js"
+
+        if js_src.exists():
+            js_content = js_src.read_text()
+            lines = js_content.split("\n")
+
+            # Find lines mentioning base path meta tag
+            meta_base_path_lines = [
+                i
+                for i, line in enumerate(lines)
+                if "mkdocs-copy-to-llm-base-path" in line
+            ]
+
+            # Should have at least one reference to the meta tag
+            assert len(meta_base_path_lines) > 0
+
+            # Check that there's conditional logic after reading the meta tag
+            for line_num in meta_base_path_lines:
+                nearby_lines = lines[line_num : line_num + 20]
+                nearby_text = "\n".join(nearby_lines)
+                # Should have conditional logic to check if meta tag exists
+                if "metaBasePath" in nearby_text:
+                    assert "if" in nearby_text
+                    break
