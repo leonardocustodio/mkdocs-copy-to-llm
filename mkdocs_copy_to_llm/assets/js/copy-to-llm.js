@@ -837,19 +837,6 @@ ${content}`;
         }
       });
 
-      // Close dropdown when clicking outside
-      document.addEventListener('click', (e) => {
-        if (!container.contains(e.target)) {
-          dropdownMenu.classList.remove('show');
-          dropdownButton.classList.remove('active');
-          // Reset chevron rotation
-          const chevron = dropdownButton.querySelector('.chevron-icon');
-          if (chevron) {
-            chevron.style.transform = '';
-          }
-        }
-      });
-
       wrapper.appendChild(container);
     }
   }
@@ -868,31 +855,53 @@ ${content}`;
     return content;
   }
 
+  // Single document-level listener for closing dropdowns (added once to avoid memory leaks)
+  // Uses event delegation to work with dynamically created elements
+  document.addEventListener('click', (e) => {
+    // Find all open dropdowns and close them if click is outside
+    document.querySelectorAll('.copy-to-llm-split-container').forEach(container => {
+      if (!container.contains(e.target)) {
+        const dropdownMenu = container.querySelector('.copy-to-llm-dropdown');
+        const dropdownButton = container.querySelector('.copy-to-llm-right');
+        if (dropdownMenu && dropdownButton) {
+          dropdownMenu.classList.remove('show');
+          dropdownButton.classList.remove('active');
+          dropdownButton.setAttribute('aria-expanded', 'false');
+          // Reset chevron rotation
+          const chevron = dropdownButton.querySelector('.chevron-icon');
+          if (chevron) {
+            chevron.style.transform = '';
+          }
+        }
+      }
+    });
+  });
+
   // Initialize on DOM ready
   function initialize() {
     addCodeCopyButtons();
     addSectionCopyButtons();
-
-    // Re-run when content changes (for dynamic content)
-    const observer = new MutationObserver(() => {
-      addCodeCopyButtons();
-      addSectionCopyButtons();
-    });
-
-    const content = document.querySelector('.md-content');
-    if (content) {
-      observer.observe(content, {
-        childList: true,
-        subtree: true
-      });
-    }
   }
 
-  // Wait for DOM to be ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initialize);
+  // Support MkDocs Material instant navigation
+  // When instant loading is enabled, clicks on internal links are intercepted
+  // and content is replaced via XHR without a full page reload. This means
+  // DOMContentLoaded only fires once on initial load. The document$ observable
+  // is provided by Material for MkDocs to handle this - it emits whenever the
+  // content changes, including during instant navigation.
+  // See: https://squidfunk.github.io/mkdocs-material/customization/#additional-javascript
+  if (typeof document$ !== 'undefined') {
+    // MkDocs Material with instant navigation - subscribe to content changes
+    document$.subscribe(function() {
+      initialize();
+    });
   } else {
-    initialize();
+    // Fallback for non-Material themes or when instant navigation is disabled
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initialize);
+    } else {
+      initialize();
+    }
   }
 
 })();
