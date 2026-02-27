@@ -1,5 +1,5 @@
 // Copy to LLM functionality
-// This script adds "Copy to LLM" buttons to code blocks and content sections
+// Adds "Copy to LLM" buttons to code blocks and content sections
 (function() {
   'use strict';
 
