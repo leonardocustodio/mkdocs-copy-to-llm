@@ -42,6 +42,7 @@ Then add it to your `mkdocs.yml`:
 plugins:
   - copy-to-llm:
       button_bg_color: "#3f51b5"
+      button_text_color: "#ffffff"
       button_hover_color: "#1976d2"
       toast_bg_color: "#4caf50"
       toast_text_color: "#ffffff"
