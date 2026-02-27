@@ -271,6 +271,20 @@ class CopyToLLMPlugin(BasePlugin[CopyToLLMPluginConfig]):
         site_name = config.get("site_name", "")
         meta_tags.append(f'<meta name="mkdocs-site-name" content="{site_name}">')
 
+        # Inject page source path for accurate raw URL construction
+        # This is especially important for mike-versioned deployments where
+        # the URL path includes version prefixes (e.g., /project/v1.0.0/)
+        # that don't correspond to the actual source file path
+        if (
+            page is not None
+            and hasattr(page, "file")
+            and hasattr(page.file, "src_path")
+        ):
+            src_path = page.file.src_path
+            meta_tags.append(
+                f'<meta name="mkdocs-copy-to-llm-src-path" content="{src_path}">'
+            )
+
         # Inject analytics configuration
         analytics_enabled = "true" if self.config.get("analytics", False) else "false"
         meta_tags.append(

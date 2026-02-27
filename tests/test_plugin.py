@@ -157,6 +157,78 @@ class TestCopyToLLMPlugin:
         assert 'meta name="mkdocs-copy-to-llm-base-path"' not in result
         assert 'meta name="mkdocs-copy-to-llm-repo-url"' in result
 
+    def test_on_post_page_with_page_src_path(self) -> None:
+        """Test the on_post_page hook injects the page source path.
+
+        Issue #27 fix: When using mike-versioned deployments, the URL path
+        includes version prefixes (e.g., /project/dev/) that don't correspond
+        to the actual source file path. Injecting page.file.src_path as a meta
+        tag allows the JavaScript to construct correct raw markdown URLs.
+        """
+        plugin = CopyToLLMPlugin()
+        plugin.config = {
+            "repo_url": "https://raw.githubusercontent.com/test/repo/main/docs",
+        }
+
+        html = "<head></head><body>Test</body>"
+        config = Config(schema=())
+        config["site_name"] = "Test Site"
+
+        # Create a mock page object with file.src_path
+        class MockFile:
+            src_path = "index.md"
+
+        class MockPage:
+            file = MockFile()
+
+        result = plugin.on_post_page(html, MockPage(), config)
+
+        assert 'meta name="mkdocs-copy-to-llm-src-path"' in result
+        assert 'content="index.md"' in result
+
+    def test_on_post_page_with_nested_page_src_path(self) -> None:
+        """Test the on_post_page hook with a nested page source path.
+
+        Issue #27 fix: Verifies that nested file paths (e.g., api/reference.md)
+        are correctly injected as meta tags for mike-versioned deployments.
+        """
+        plugin = CopyToLLMPlugin()
+        plugin.config = {
+            "repo_url": "https://raw.githubusercontent.com/test/repo/main/docs",
+        }
+
+        html = "<head></head><body>Test</body>"
+        config = Config(schema=())
+        config["site_name"] = "Test Site"
+
+        class MockFile:
+            src_path = "api/reference.md"
+
+        class MockPage:
+            file = MockFile()
+
+        result = plugin.on_post_page(html, MockPage(), config)
+
+        assert 'meta name="mkdocs-copy-to-llm-src-path"' in result
+        assert 'content="api/reference.md"' in result
+
+    def test_on_post_page_without_page_object(self) -> None:
+        """Test the on_post_page hook when page is None.
+
+        Issue #27 fix: Verifies backward compatibility - passing None for page
+        (as in existing tests) should not inject the src-path meta tag.
+        """
+        plugin = CopyToLLMPlugin()
+        plugin.config = {}
+
+        html = "<head></head><body>Test</body>"
+        config = Config(schema=())
+        config["site_name"] = "Test Site"
+
+        result = plugin.on_post_page(html, None, config)
+
+        assert 'meta name="mkdocs-copy-to-llm-src-path"' not in result
+
     def test_on_pre_build(self) -> None:
         """Test the on_pre_build hook."""
         plugin = CopyToLLMPlugin()
@@ -1080,5 +1152,55 @@ class TestCopyToLLMPlugin:
                 nearby_text = "\n".join(nearby_lines)
                 # Should have conditional logic to check if meta tag exists
                 if "metaBasePath" in nearby_text:
+                    assert "if" in nearby_text
+                    break
+
+    def test_javascript_src_path_meta_tag_selector(self) -> None:
+        """Test that JavaScript reads src_path from meta tag.
+
+        Issue #27 fix: Validates that the JavaScript code includes logic to read
+        the source file path from the mkdocs-copy-to-llm-src-path meta tag, which
+        is needed for correct raw URL construction with mike-versioned deployments.
+        """
+        plugin_dir = Path(__file__).parent.parent / "mkdocs_copy_to_llm"
+        js_src = plugin_dir / "assets" / "js" / "copy-to-llm.js"
+
+        if js_src.exists():
+            js_content = js_src.read_text()
+
+            # Should contain code to read the src-path meta tag
+            assert 'meta[name="mkdocs-copy-to-llm-src-path"]' in js_content
+            assert "metaSrcPath" in js_content
+
+    def test_javascript_src_path_conditional_logic(self) -> None:
+        """Test that src path usage is conditional on meta tag presence.
+
+        Issue #27 fix: Validates that the JavaScript only uses src_path when
+        the meta tag is present, falling back to URL-based path derivation
+        for backward compatibility.
+        """
+        plugin_dir = Path(__file__).parent.parent / "mkdocs_copy_to_llm"
+        js_src = plugin_dir / "assets" / "js" / "copy-to-llm.js"
+
+        if js_src.exists():
+            js_content = js_src.read_text()
+            lines = js_content.split("\n")
+
+            # Find lines mentioning src-path meta tag
+            meta_src_path_lines = [
+                i
+                for i, line in enumerate(lines)
+                if "mkdocs-copy-to-llm-src-path" in line
+            ]
+
+            # Should have at least one reference to the meta tag
+            assert len(meta_src_path_lines) > 0
+
+            # Check that there's conditional logic after reading the meta tag
+            for line_num in meta_src_path_lines:
+                nearby_lines = lines[line_num : line_num + 10]
+                nearby_text = "\n".join(nearby_lines)
+                # Should have conditional logic to check if meta tag exists
+                if "metaSrcPath" in nearby_text:
                     assert "if" in nearby_text
                     break
