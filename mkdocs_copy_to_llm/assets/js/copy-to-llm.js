@@ -281,8 +281,15 @@ ${content}`;
       .replace(/<a[^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/g, '[$2]($1)')
       .replace(/<li[^>]*>(.*?)<\/li>/g, '- $1\n')
       .replace(/<p[^>]*>(.*?)<\/p>/g, '$1\n\n')
-      .replace(/<br[^>]*>/g, '\n')
-      .replace(/<[^>]+>/g, '');
+      .replace(/<br[^>]*>/g, '\n');
+
+    // Remove all remaining HTML tags by repeating until stable
+    // This prevents incomplete sanitization (e.g. "<scr<script>ipt>")
+    let previousText;
+    do {
+      previousText = text;
+      text = text.replace(/<[^>]+>/g, '');
+    } while (text !== previousText);
 
     // Clean up extra whitespace
     return text.replace(/\n{3,}/g, '\n\n').trim();
