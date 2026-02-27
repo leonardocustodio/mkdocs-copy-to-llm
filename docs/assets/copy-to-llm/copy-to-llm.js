@@ -286,10 +286,11 @@ ${content}`;
     // Remove all remaining HTML tags by repeating until stable
     // This prevents incomplete sanitization (e.g. "<scr<script>ipt>")
     let previousText;
+    let iterations = 0;
     do {
       previousText = text;
       text = text.replace(/<[^>]+>/g, '');
-    } while (text !== previousText);
+    } while (text !== previousText && ++iterations < 10);
 
     // Clean up extra whitespace
     return text.replace(/\n{3,}/g, '\n\n').trim();
