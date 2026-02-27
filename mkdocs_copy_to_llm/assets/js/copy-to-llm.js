@@ -155,6 +155,43 @@ ${content}`;
       }
     }
 
+    // Try to use the page source path injected by the plugin
+    // This is the most reliable method as it uses MkDocs' own knowledge of the file structure
+    // and works correctly with mike-versioned deployments where URL paths include version prefixes
+    const metaSrcPath = document.querySelector('meta[name="mkdocs-copy-to-llm-src-path"]');
+    if (metaSrcPath && metaSrcPath.content) {
+      const srcPath = metaSrcPath.content;
+
+      // Determine the base URL
+      let baseUrl = '';
+
+      // Try to get the repository URL from the page
+      const repoLinkSrc = document.querySelector('a[href*="github.com"][href$="/tree/"]') ||
+                          document.querySelector('a[href*="github.com"][href*="/tree/"]');
+
+      if (repoLinkSrc && repoLinkSrc.href) {
+        const match = repoLinkSrc.href.match(/github\.com\/([^\/]+\/[^\/]+)\/tree\/([^\/]+)/);
+        if (match) {
+          const [, repo, branch] = match;
+          baseUrl = `https://raw.githubusercontent.com/${repo}/${branch}`;
+        }
+      }
+
+      if (!baseUrl) {
+        const metaRepo = document.querySelector('meta[name="mkdocs-copy-to-llm-repo-url"]');
+        if (metaRepo && metaRepo.content) {
+          baseUrl = metaRepo.content;
+        }
+      }
+
+      if (baseUrl) {
+        // Ensure baseUrl doesn't end with / and srcPath starts with /
+        const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+        const cleanSrcPath = '/' + srcPath;
+        return cleanBaseUrl + cleanSrcPath;
+      }
+    }
+
     // Fallback: construct URL from current path
     const currentPath = window.location.pathname;
 
