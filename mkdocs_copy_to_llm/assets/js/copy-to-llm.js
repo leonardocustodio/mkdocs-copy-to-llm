@@ -185,9 +185,9 @@ ${content}`;
       }
 
       if (baseUrl) {
-        // Ensure baseUrl doesn't end with / and srcPath doesn't start with /
+        // Ensure baseUrl doesn't end with / and srcPath starts with /
         const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
-        const cleanSrcPath = srcPath.startsWith('/') ? srcPath : '/' + srcPath;
+        const cleanSrcPath = '/' + srcPath;
         return cleanBaseUrl + cleanSrcPath;
       }
     }
