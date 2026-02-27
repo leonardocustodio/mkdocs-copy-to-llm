@@ -1,6 +1,6 @@
 import os
 import shutil
-from typing import Any, Optional
+from typing import Any, Optional  # noqa: UP035
 
 from mkdocs import utils
 from mkdocs.config import Config, config_options
