@@ -29,6 +29,7 @@ class TestCopyToLLMPlugin:
         """Test that the config has correct defaults."""
         config = CopyToLLMPluginConfig()
         assert config.button_bg_color == ""
+        assert config.button_text_color == ""
         assert config.button_hover_color == ""
         assert config.toast_bg_color == ""
         assert config.toast_text_color == ""
@@ -56,6 +57,7 @@ class TestCopyToLLMPlugin:
         plugin = CopyToLLMPlugin()
         plugin.config = {
             "button_bg_color": "#ffffff",
+            "button_text_color": "#000000",
             "button_hover_color": "#0969da",
             "toast_bg_color": "#0969da",
             "toast_text_color": "#ffffff",
@@ -63,6 +65,7 @@ class TestCopyToLLMPlugin:
 
         css = plugin._generate_custom_css()
         assert "--copy-to-llm-button-bg: #ffffff;" in css
+        assert "--copy-to-llm-button-text: #000000;" in css
         assert "--copy-to-llm-button-hover: #0969da;" in css
         assert "--copy-to-llm-toast-bg: #0969da;" in css
         assert "--copy-to-llm-toast-text: #ffffff;" in css
@@ -293,6 +296,7 @@ class TestCopyToLLMPlugin:
         # Test valid colors for all fields
         plugin.config = {
             "button_bg_color": "#123456",
+            "button_text_color": "#654321",
             "button_hover_color": "rgb(255, 0, 0)",
             "toast_bg_color": "var(--primary)",
             "toast_text_color": "blue",
@@ -304,6 +308,12 @@ class TestCopyToLLMPlugin:
     def test_color_validation_individual_fields(self) -> None:
         """Test that each color field is validated when present."""
         plugin = CopyToLLMPlugin()
+
+        # Test button_text_color validation
+        plugin.config = {"button_text_color": "#INVALID"}
+        with pytest.raises(ColorValidationError) as exc_info:
+            plugin._validate_config()
+        assert "button_text_color" in str(exc_info.value)
 
         # Test button_hover_color validation
         plugin.config = {"button_hover_color": "#INVALID"}

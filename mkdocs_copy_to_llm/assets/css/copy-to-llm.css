@@ -42,7 +42,7 @@
   font-size: 0.85em;
   font-family: var(--md-text-font-family);
   background-color: var(--copy-to-llm-button-bg, #ffffff);
-  color: var(--black, #000000);
+  color: var(--copy-to-llm-button-text, var(--black, #000000));
   border: none;
   cursor: pointer;
   transition: all 0.2s;
