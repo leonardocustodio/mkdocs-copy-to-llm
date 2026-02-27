@@ -60,6 +60,7 @@ You can customize the colors to match your theme:
 plugins:
   - copy-to-llm:
       button_bg_color: "#ffffff"        # Button background color
+      button_text_color: "#000000"     # Button text color
       button_hover_color: "#0969da"     # Button hover color
       toast_bg_color: "#0969da"         # Toast notification background
       toast_text_color: "#ffffff"       # Toast notification text color

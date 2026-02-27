@@ -19,6 +19,7 @@ from .validation import sanitize_css_value, validate_color, validate_url
 
 class CopyToLLMPluginConfig(Config):
     button_bg_color = config_options.Type(str, default="")
+    button_text_color = config_options.Type(str, default="")
     button_hover_color = config_options.Type(str, default="")
     toast_bg_color = config_options.Type(str, default="")
     toast_text_color = config_options.Type(str, default="")
@@ -52,6 +53,9 @@ class CopyToLLMPlugin(BasePlugin[CopyToLLMPluginConfig]):
         # Validate color configurations
         if self.config.get("button_bg_color"):
             validate_color(self.config["button_bg_color"], "button_bg_color")
+
+        if self.config.get("button_text_color"):
+            validate_color(self.config["button_text_color"], "button_text_color")
 
         if self.config.get("button_hover_color"):
             validate_color(self.config["button_hover_color"], "button_hover_color")
@@ -108,6 +112,10 @@ class CopyToLLMPlugin(BasePlugin[CopyToLLMPluginConfig]):
         if self.config.get("button_bg_color"):
             color = sanitize_css_value(self.config["button_bg_color"])
             css_parts.append(f"--copy-to-llm-button-bg: {color};")
+
+        if self.config.get("button_text_color"):
+            color = sanitize_css_value(self.config["button_text_color"])
+            css_parts.append(f"--copy-to-llm-button-text: {color};")
 
         if self.config.get("button_hover_color"):
             color = sanitize_css_value(self.config["button_hover_color"])

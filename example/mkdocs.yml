@@ -22,6 +22,10 @@ plugins:
       # Using a subtle blue-gray for a modern look
       button_bg_color: "#eceff1"
 
+      # Button text color (default: uses theme default)
+      # Dark text for good contrast on light background
+      button_text_color: "#333333"
+
       # Button hover color (default: uses theme default)
       # Light blue on hover for nice interaction feedback
       button_hover_color: "#bbdefb"
