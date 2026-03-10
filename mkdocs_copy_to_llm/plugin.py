@@ -247,9 +247,7 @@ class CopyToLLMPlugin(BasePlugin[CopyToLLMPluginConfig]):
                 custom_css_path = os.path.join(assets_dir, "copy-to-llm-custom.css")
                 try:
                     if self._write_if_changed(custom_css_path, custom_css):
-                        utils.log.info(
-                            f"Created custom CSS file at {custom_css_path}"
-                        )
+                        utils.log.info(f"Created custom CSS file at {custom_css_path}")
                 except Exception as e:
                     raise AssetProcessingError(
                         f"Failed to create custom CSS: {e}"
