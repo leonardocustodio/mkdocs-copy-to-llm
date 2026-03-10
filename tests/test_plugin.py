@@ -2,6 +2,7 @@
 
 import os
 import tempfile
+import time
 from pathlib import Path
 from unittest.mock import patch
 
@@ -670,8 +671,6 @@ class TestCopyToLLMPlugin:
             css_mtime = css_file.stat().st_mtime_ns
 
             # Second build: should skip writing because content is unchanged
-            import time
-
             time.sleep(0.05)  # ensure mtime would differ if rewritten
             plugin.on_pre_build(config)
 
@@ -696,8 +695,6 @@ class TestCopyToLLMPlugin:
             path = str(Path(tmpdir) / "test.txt")
             Path(path).write_text("hello")
             mtime = Path(path).stat().st_mtime_ns
-
-            import time
 
             time.sleep(0.05)
             assert plugin._write_if_changed(path, "hello") is False
