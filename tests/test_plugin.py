@@ -1,5 +1,6 @@
 """Test cases for the Copy to LLM plugin."""
 
+import os
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
@@ -395,9 +396,12 @@ class TestCopyToLLMPlugin:
             config = Config(schema=())
             config["docs_dir"] = tmpdir
 
-            # Mock js file exists but css doesn't
+            # Mock js source file exists but css source doesn't.
+            # Use the /js/ directory marker so we match the source path
+            # but not the destination path written by _write_if_changed.
+            js_src_marker = os.path.join("js", "copy-to-llm.js")
             with patch("os.path.exists") as mock_exists:
-                mock_exists.side_effect = lambda path: "copy-to-llm.js" in path
+                mock_exists.side_effect = lambda path: js_src_marker in str(path)
 
                 with pytest.raises(AssetNotFoundError) as exc_info:
                     plugin.on_pre_build(config)
@@ -444,9 +448,18 @@ class TestCopyToLLMPlugin:
             css_src = plugin_dir / "assets" / "css" / "copy-to-llm.css"
 
             if js_src.exists() and css_src.exists():
-                # Mock file operations
+                # Use real filesystem for dest files so _write_if_changed
+                # works correctly, while source files always "exist".
+                original_exists = os.path.exists
+
                 with patch("os.path.exists") as mock_exists:
-                    mock_exists.return_value = True  # All files exist
+
+                    def exists_side_effect(path: str) -> bool:
+                        if tmpdir in str(path):
+                            return original_exists(path)
+                        return True
+
+                    mock_exists.side_effect = exists_side_effect
 
                     original_open = open
 
@@ -608,6 +621,98 @@ class TestCopyToLLMPlugin:
 
             # Still doesn't exist
             assert not assets_dir.exists()
+
+    def test_on_post_build_skips_cleanup_in_serve_mode(self) -> None:
+        """Test that on_post_build skips cleanup during serve mode."""
+        plugin = CopyToLLMPlugin()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = Config(schema=())
+            config["docs_dir"] = tmpdir
+            config["dev_addr"] = ("127.0.0.1", "8000")
+
+            # Create a test assets directory with a file
+            assets_dir = Path(tmpdir) / "assets" / "copy-to-llm"
+            assets_dir.mkdir(parents=True, exist_ok=True)
+            test_file = assets_dir / "test.txt"
+            test_file.write_text("test")
+
+            assert assets_dir.exists()
+
+            # Call on_post_build - should NOT remove the directory
+            plugin.on_post_build(config)
+
+            # Assets directory should still exist in serve mode
+            assert assets_dir.exists()
+            assert test_file.exists()
+
+    def test_on_pre_build_skips_write_when_unchanged(self) -> None:
+        """Test that on_pre_build does not rewrite files with identical content."""
+        plugin = CopyToLLMPlugin()
+        plugin.config = {}
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = Config(schema=())
+            config["docs_dir"] = tmpdir
+
+            # First build: writes the files
+            plugin.on_pre_build(config)
+
+            assets_dir = Path(tmpdir) / "assets" / "copy-to-llm"
+            js_file = assets_dir / "copy-to-llm.js"
+            css_file = assets_dir / "copy-to-llm.css"
+
+            assert js_file.exists()
+            assert css_file.exists()
+
+            # Record modification times
+            js_mtime = js_file.stat().st_mtime_ns
+            css_mtime = css_file.stat().st_mtime_ns
+
+            # Second build: should skip writing because content is unchanged
+            import time
+
+            time.sleep(0.05)  # ensure mtime would differ if rewritten
+            plugin.on_pre_build(config)
+
+            # Modification times should be unchanged
+            assert js_file.stat().st_mtime_ns == js_mtime
+            assert css_file.stat().st_mtime_ns == css_mtime
+
+    def test_write_if_changed_writes_new_file(self) -> None:
+        """Test _write_if_changed writes a new file."""
+        plugin = CopyToLLMPlugin()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = str(Path(tmpdir) / "test.txt")
+            assert plugin._write_if_changed(path, "hello") is True
+            assert Path(path).read_text() == "hello"
+
+    def test_write_if_changed_skips_identical(self) -> None:
+        """Test _write_if_changed skips write when content is identical."""
+        plugin = CopyToLLMPlugin()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = str(Path(tmpdir) / "test.txt")
+            Path(path).write_text("hello")
+            mtime = Path(path).stat().st_mtime_ns
+
+            import time
+
+            time.sleep(0.05)
+            assert plugin._write_if_changed(path, "hello") is False
+            assert Path(path).stat().st_mtime_ns == mtime
+
+    def test_write_if_changed_rewrites_different(self) -> None:
+        """Test _write_if_changed rewrites when content differs."""
+        plugin = CopyToLLMPlugin()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = str(Path(tmpdir) / "test.txt")
+            Path(path).write_text("hello")
+
+            assert plugin._write_if_changed(path, "world") is True
+            assert Path(path).read_text() == "world"
 
     def test_on_pre_build_with_custom_css_success(self) -> None:
         """Test on_pre_build successfully creates custom CSS file."""
