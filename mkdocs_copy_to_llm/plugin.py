@@ -105,6 +105,23 @@ class CopyToLLMPlugin(BasePlugin[CopyToLLMPluginConfig]):
             utils.log.error(f"Copy to LLM plugin configuration error: {e}")
             raise
 
+    def _write_if_changed(self, path: str, content: str) -> bool:
+        """Write content to a file only if the content has changed.
+
+        This prevents triggering file watchers during ``mkdocs serve``
+        when the generated content is identical to what is already on disk.
+
+        Returns:
+            True if the file was written, False if unchanged.
+        """
+        if os.path.exists(path):
+            with open(path, encoding="utf-8") as f:
+                if f.read() == content:
+                    return False
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(content)
+        return True
+
     def _generate_custom_css(self) -> str:
         """Generate custom CSS based on configuration"""
         css_parts = []
@@ -198,10 +215,8 @@ class CopyToLLMPlugin(BasePlugin[CopyToLLMPluginConfig]):
                     js_content = minify_js(js_content)
                     utils.log.info("Minified Copy to LLM JavaScript")
 
-                with open(js_dest, "w", encoding="utf-8") as f:
-                    f.write(js_content)
-
-                utils.log.info(f"Processed Copy to LLM JS to {js_dest}")
+                if self._write_if_changed(js_dest, js_content):
+                    utils.log.info(f"Processed Copy to LLM JS to {js_dest}")
             except Exception as e:
                 raise AssetProcessingError(f"Failed to process JavaScript: {e}") from e
 
@@ -221,10 +236,8 @@ class CopyToLLMPlugin(BasePlugin[CopyToLLMPluginConfig]):
                     css_content = minify_css(css_content)
                     utils.log.info("Minified Copy to LLM CSS")
 
-                with open(css_dest, "w", encoding="utf-8") as f:
-                    f.write(css_content)
-
-                utils.log.info(f"Processed Copy to LLM CSS to {css_dest}")
+                if self._write_if_changed(css_dest, css_content):
+                    utils.log.info(f"Processed Copy to LLM CSS to {css_dest}")
             except Exception as e:
                 raise AssetProcessingError(f"Failed to process CSS: {e}") from e
 
@@ -233,9 +246,8 @@ class CopyToLLMPlugin(BasePlugin[CopyToLLMPluginConfig]):
             if custom_css:
                 custom_css_path = os.path.join(assets_dir, "copy-to-llm-custom.css")
                 try:
-                    with open(custom_css_path, "w", encoding="utf-8") as f:
-                        f.write(custom_css)
-                    utils.log.info(f"Created custom CSS file at {custom_css_path}")
+                    if self._write_if_changed(custom_css_path, custom_css):
+                        utils.log.info(f"Created custom CSS file at {custom_css_path}")
                 except Exception as e:
                     raise AssetProcessingError(
                         f"Failed to create custom CSS: {e}"
@@ -295,6 +307,11 @@ class CopyToLLMPlugin(BasePlugin[CopyToLLMPluginConfig]):
         """
         Called after the build is complete - clean up temporary files
         """
+        # Skip cleanup during serve mode to avoid triggering the file
+        # watcher and causing an infinite rebuild loop.
+        if config.get("dev_addr"):
+            return
+
         # Clean up the temporary assets we copied to docs_dir
         docs_dir: str = config["docs_dir"]
         assets_dir: str = os.path.join(docs_dir, "assets", "copy-to-llm")
