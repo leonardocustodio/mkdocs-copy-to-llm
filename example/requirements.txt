@@ -11,4 +11,4 @@ csscompressor>=0.9.5
 
 # Material theme extensions
 pymdown-extensions>=10.0
-pygments>=2.16
+pygments>=2.20.0
