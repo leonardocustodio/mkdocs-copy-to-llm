@@ -10,5 +10,5 @@ jsmin>=3.0.0
 csscompressor>=0.9.5
 
 # Material theme extensions
-pymdown-extensions>=10.0
+pymdown-extensions>=10.21.2
 pygments>=2.16
